@@ -1,5 +1,6 @@
 import Card from '../components/Card';
 import Navbar from '../components/Navbar';
+import ContactForm from '../components/ContactForm';
 
 export default function Advertisers() {
   const cards = [
@@ -32,6 +33,36 @@ export default function Advertisers() {
     }
   ];
 
+  const trafficProviders = [
+    {
+      title: "TrafficPro",
+      description: "Профессиональный поставщик качественного трафика",
+      features: [
+        "Высокий CTR",
+        "Геотаргетинг",
+        "Подробная аналитика"
+      ]
+    },
+    {
+      title: "TrafficMaster",
+      description: "Опытный партнер с большим охватом",
+      features: [
+        "Глобальный охват",
+        "Гибкие условия",
+        "Техническая поддержка"
+      ]
+    },
+    {
+      title: "TrafficExpert",
+      description: "Специализированный трафик для вашего бизнеса",
+      features: [
+        "Нишевый трафик",
+        "Высокое качество",
+        "Индивидуальный подход"
+      ]
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -46,9 +77,15 @@ export default function Advertisers() {
         </div>
 
         <div className="mt-10">
+          <ContactForm 
+            title="Подать заявку на подключение"
+            description="Заполните форму, и мы свяжемся с вами для обсуждения деталей сотрудничества"
+          />
+          
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {cards.map((card, index) => (
-              <Card key={index} {...card} />
+            {trafficProviders.map((provider, index) => (
+              <Card key={index} {...provider} />
             ))}
           </div>
         </div>

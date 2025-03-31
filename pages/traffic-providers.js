@@ -1,33 +1,34 @@
 import Card from '../components/Card';
 import Navbar from '../components/Navbar';
+import ContactForm from '../components/ContactForm';
 
 export default function TrafficProviders() {
-  const cards = [
+  const advertisers = [
     {
-      title: "Высокие выплаты",
-      description: "Конкурентные условия для партнеров",
+      title: "AdPro",
+      description: "Крупный рекламодатель с высокими бюджетами",
       features: [
-        "Еженедельные выплаты",
-        "Прозрачные условия",
-        "Бонусная программа"
+        "Высокие ставки",
+        "Стабильные выплаты",
+        "Долгосрочное сотрудничество"
       ]
     },
     {
-      title: "Техническая поддержка",
-      description: "Профессиональная помощь 24/7",
+      title: "AdMaster",
+      description: "Опытный рекламодатель с разнообразными офферами",
       features: [
-        "Дедicated менеджер",
-        "Быстрая поддержка",
-        "Техническая документация"
+        "Разные вертикали",
+        "Гибкие условия",
+        "Быстрые выплаты"
       ]
     },
     {
-      title: "Инструменты для роста",
-      description: "Все необходимое для масштабирования",
+      title: "AdExpert",
+      description: "Специализированные рекламные кампании",
       features: [
-        "API доступ",
-        "Мониторинг статистики",
-        "Обучающие материалы"
+        "Нишевые офферы",
+        "Высокий конверт",
+        "Персональный подход"
       ]
     }
   ];
@@ -46,9 +47,15 @@ export default function TrafficProviders() {
         </div>
 
         <div className="mt-10">
+          <ContactForm 
+            title="Подать заявку на подключение"
+            description="Заполните форму, и мы свяжемся с вами для обсуждения деталей сотрудничества"
+          />
+          
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши рекламодатели</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {cards.map((card, index) => (
-              <Card key={index} {...card} />
+            {advertisers.map((advertiser, index) => (
+              <Card key={index} {...advertiser} />
             ))}
           </div>
         </div>
