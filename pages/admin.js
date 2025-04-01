@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,11 +26,6 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/');
-      return;
-    }
-
     // Загружаем статистику при монтировании компонента
     fetchStats();
 
@@ -43,9 +34,9 @@ export default function AdminPage() {
 
     // Очищаем интервал при размонтировании компонента
     return () => clearInterval(interval);
-  }, [status, router]);
+  }, []);
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-7xl mx-auto">
