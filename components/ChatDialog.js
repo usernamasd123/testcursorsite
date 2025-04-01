@@ -11,6 +11,13 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   const [rating, setRating] = useState(null);
   const [isLead, setIsLead] = useState(false);
   const [leadType, setLeadType] = useState(null);
+  const [reactions, setReactions] = useState({
+    '👍': '👍',
+    '👎': '��',
+    '❤️': '❤️',
+    '😊': '😊',
+    '🤔': '🤔'
+  });
   const messagesEndRef = useRef(null);
 
   // Предустановленные быстрые ответы
@@ -163,6 +170,39 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       });
     } catch (error) {
       console.error('Error sending rating:', error);
+    }
+  };
+
+  const handleReaction = async (messageId, reaction) => {
+    try {
+      const response = await fetch('/api/chat/reaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId,
+          reaction,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add reaction');
+      }
+
+      // Обновляем сообщение с новой реакцией
+      setMessages(prevMessages =>
+        prevMessages.map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                reactions: [...(msg.reactions || []), reaction],
+              }
+            : msg
+        )
+      );
+    } catch (error) {
+      console.error('Error adding reaction:', error);
     }
   };
 

@@ -4,6 +4,26 @@ import ChatDialog from './ChatDialog';
 export default function Card({ title, description, features }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  const handleContactClick = async () => {
+    try {
+      // Увеличиваем счетчик кликов
+      await fetch('/api/cards/click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cardId: card.id
+        }),
+      });
+
+      // Открываем чат
+      onContactClick(card);
+    } catch (error) {
+      console.error('Error tracking card click:', error);
+    }
+  };
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
@@ -20,7 +40,7 @@ export default function Card({ title, description, features }) {
           ))}
         </ul>
         <button
-          onClick={() => setIsChatOpen(true)}
+          onClick={handleContactClick}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
         >
           Связаться

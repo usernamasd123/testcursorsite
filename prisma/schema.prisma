@@ -19,6 +19,7 @@ model Message {
   leadType  String?
   rating    String?
   timestamp DateTime @default(now())
+  reactions String[] @default([])
 
   @@index([userId])
   @@index([cardId])
@@ -30,6 +31,7 @@ model Card {
   title       String
   description String
   type        String
+  clicks      Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -42,4 +44,5 @@ model UserSession {
   lastMessageTime DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  messageTimes    DateTime[]
 }

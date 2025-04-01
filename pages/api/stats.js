@@ -53,106 +53,92 @@ export default async function handler(req, res) {
 
     // Основные метрики
     console.log('Calculating basic metrics...');
-    const totalMessages = await prisma.message.count().catch(() => 0);
+    const totalMessages = await prisma.message.count();
     console.log('Total messages:', totalMessages);
 
     const userMessages = await prisma.message.count({
       where: { role: 'user' }
-    }).catch(() => 0);
+    });
     console.log('User messages:', userMessages);
 
     const botMessages = await prisma.message.count({
       where: { role: 'assistant' }
-    }).catch(() => 0);
+    });
     console.log('Bot messages:', botMessages);
 
     console.log('Calculating unique users...');
-    const uniqueUsers = await prisma.message.groupBy({
-      by: ['userId'],
-      where: { userId: { not: null } },
-      _count: true,
-    }).catch(() => []);
-    console.log('Unique users:', uniqueUsers.length);
+    const uniqueUsers = await prisma.userSession.count();
+    console.log('Unique users:', uniqueUsers);
 
-    const totalDialogs = await prisma.userSession.count().catch(() => 0);
-    console.log('Total dialogs:', totalDialogs);
+    const totalDialogues = await prisma.dialogue.count();
+    console.log('Total dialogues:', totalDialogues);
 
-    const avgMessagesPerUser = uniqueUsers.length > 0 ? totalMessages / uniqueUsers.length : 0;
+    const avgMessagesPerUser = totalMessages / uniqueUsers || 0;
     console.log('Average messages per user:', avgMessagesPerUser);
 
-    // Статистика по заявкам
+    // Статистика по лидам
     console.log('Calculating leads...');
     const leads = await prisma.message.groupBy({
       by: ['leadType'],
       where: { isLead: true },
-      _count: true,
-    }).catch(() => []);
+      _count: true
+    });
     console.log('Leads:', leads);
 
     // Активность по часам
     console.log('Calculating hourly activity...');
     const hourlyActivity = await prisma.message.groupBy({
       by: ['hour'],
-      _count: true,
-      orderBy: {
-        hour: 'asc',
-      },
-    }).catch(() => []);
+      _count: true
+    });
     console.log('Hourly activity:', hourlyActivity);
 
     // Качество ответов
     console.log('Calculating ratings...');
     const ratings = await prisma.message.groupBy({
       by: ['rating'],
-      where: { rating: { not: null } },
-      _count: true,
-    }).catch(() => []);
+      _count: true
+    });
     console.log('Ratings:', ratings);
 
     // Ошибки бота
     console.log('Calculating bot errors...');
     const botErrors = await prisma.message.count({
       where: { isError: true }
-    }).catch(() => 0);
+    });
     console.log('Bot errors:', botErrors);
 
-    // Повторные обращения
+    // Возвращающиеся пользователи
     console.log('Calculating returning users...');
     const returningUsers = await prisma.userSession.count({
       where: { isReturning: true }
-    }).catch(() => 0);
+    });
     console.log('Returning users:', returningUsers);
 
-    const returningRate = totalDialogs > 0 ? (returningUsers / totalDialogs) * 100 : 0;
+    const returningRate = (returningUsers / uniqueUsers) * 100 || 0;
     console.log('Returning rate:', returningRate);
 
     // Популярные вопросы
     console.log('Calculating popular questions...');
-    const popularQuestions = await prisma.message.groupBy({
-      by: ['content'],
+    const popularQuestions = await prisma.message.findMany({
       where: { role: 'user' },
-      _count: true,
-      orderBy: {
-        _count: {
-          content: 'desc',
-        },
-      },
-      take: 10,
-    }).catch(() => []);
+      select: { content: true },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
     console.log('Popular questions:', popularQuestions);
 
     // Популярность карточек
     console.log('Calculating card popularity...');
-    const cardPopularity = await prisma.message.groupBy({
-      by: ['cardId'],
-      where: { cardId: { not: null } },
-      _count: true,
-      orderBy: {
-        _count: {
-          cardId: 'desc',
-        },
+    const cardPopularity = await prisma.card.findMany({
+      select: {
+        title: true,
+        clicks: true
       },
-    }).catch(() => []);
+      orderBy: {
+        clicks: 'desc'
+      }
+    });
     console.log('Card popularity:', cardPopularity);
 
     // Получаем информацию о карточках
@@ -169,27 +155,42 @@ export default async function handler(req, res) {
     // Среднее время между сообщениями
     console.log('Calculating average time between messages...');
     const userSessions = await prisma.userSession.findMany({
-      where: {
-        lastMessageTime: { not: null }
+      select: {
+        messageTimes: true
       }
-    }).catch(() => []);
+    });
     console.log('User sessions:', userSessions.length);
 
-    let avgTimeBetweenMessages = 0;
-    if (userSessions.length > 0) {
-      const totalTime = userSessions.reduce((acc, session) => {
-        const timeDiff = new Date() - new Date(session.lastMessageTime);
-        return acc + (timeDiff / (session.messageCount || 1));
-      }, 0);
-      avgTimeBetweenMessages = totalTime / userSessions.length;
-    }
+    let totalTimeBetweenMessages = 0;
+    let messagePairsCount = 0;
+
+    userSessions.forEach(session => {
+      const times = session.messageTimes.sort((a, b) => new Date(a) - new Date(b));
+      for (let i = 1; i < times.length; i++) {
+        const timeDiff = new Date(times[i]) - new Date(times[i - 1]);
+        totalTimeBetweenMessages += timeDiff;
+        messagePairsCount++;
+      }
+    });
+
+    const avgTimeBetweenMessages = messagePairsCount > 0 
+      ? totalTimeBetweenMessages / messagePairsCount / 1000 / 60 // в минутах
+      : 0;
     console.log('Average time between messages:', avgTimeBetweenMessages);
+
+    // Реакции на сообщения
+    console.log('Calculating reactions...');
+    const reactions = await prisma.message.groupBy({
+      by: ['reactions'],
+      _count: true
+    });
+    console.log('Reactions:', reactions);
 
     // Форматируем данные для ответа
     console.log('Formatting response...');
     const stats = {
       // Основные метрики
-      totalDialogs,
+      totalDialogs: totalDialogues,
       messages: {
         total: totalMessages,
         user: userMessages,
