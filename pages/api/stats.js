@@ -10,9 +10,6 @@ export default async function handler(req, res) {
   try {
     // Базовые метрики
     const totalMessages = await prisma.message.count();
-    const userMessages = await prisma.message.count({
-      where: { role: 'user' }
-    });
     const botMessages = await prisma.message.count({
       where: { role: 'assistant' }
     });
@@ -54,19 +51,37 @@ export default async function handler(req, res) {
       where: { isReturning: true }
     });
 
-    // Популярные вопросы
-    const popularQuestions = await prisma.message.findMany({
+    // Популярные вопросы с подсчетом повторений
+    const allUserMessages = await prisma.message.findMany({
       where: { role: 'user' },
-      orderBy: { timestamp: 'desc' },
-      take: 10,
       select: {
         content: true,
         timestamp: true
       }
     });
 
-    // Популярность карточек
-    const cardPopularity = await prisma.card.findMany({
+    // Подсчитываем количество повторений каждого вопроса
+    const questionCounts = allUserMessages.reduce((acc, msg) => {
+      acc[msg.content] = (acc[msg.content] || 0) + 1;
+      return acc;
+    }, {});
+
+    // Сортируем вопросы по количеству повторений
+    const popularQuestions = Object.entries(questionCounts)
+      .map(([content, count]) => ({
+        content,
+        count,
+        lastAsked: allUserMessages
+          .filter(m => m.content === content)
+          .sort((a, b) => b.timestamp - a.timestamp)[0]
+          .timestamp
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Популярность карточек по типам
+    const advertiserCards = await prisma.card.findMany({
+      where: { type: 'advertiser' },
       orderBy: { clicks: 'desc' },
       select: {
         title: true,
@@ -74,34 +89,19 @@ export default async function handler(req, res) {
       }
     });
 
-    // Среднее время между сообщениями
-    const sessions = await prisma.userSession.findMany({
-      select: { messageTimes: true },
-      where: {
-        messageTimes: { isEmpty: false }
+    const supplierCards = await prisma.card.findMany({
+      where: { type: 'supplier' },
+      orderBy: { clicks: 'desc' },
+      select: {
+        title: true,
+        clicks: true
       }
     });
-
-    let totalTimeBetweenMessages = 0;
-    let totalIntervals = 0;
-
-    sessions.forEach(session => {
-      const times = session.messageTimes.sort();
-      for (let i = 1; i < times.length; i++) {
-        totalTimeBetweenMessages += times[i] - times[i-1];
-        totalIntervals++;
-      }
-    });
-
-    const avgTimeBetweenMessages = totalIntervals > 0 
-      ? totalTimeBetweenMessages / totalIntervals / 1000 // конвертируем в секунды
-      : 0;
 
     // Формируем ответ
     const stats = {
       basicMetrics: {
         totalMessages,
-        userMessages,
         botMessages,
         uniqueUsers,
         avgMessagesPerUser: uniqueUsers > 0 ? totalMessages / uniqueUsers : 0
@@ -127,13 +127,19 @@ export default async function handler(req, res) {
       },
       popularQuestions: popularQuestions.map(q => ({
         question: q.content,
-        timestamp: q.timestamp
+        count: q.count,
+        lastAsked: q.lastAsked
       })),
-      cardPopularity: cardPopularity.map(c => ({
-        title: c.title,
-        clicks: c.clicks
-      })),
-      avgTimeBetweenMessages
+      cardPopularity: {
+        advertiser: advertiserCards.map(c => ({
+          title: c.title,
+          clicks: c.clicks
+        })),
+        supplier: supplierCards.map(c => ({
+          title: c.title,
+          clicks: c.clicks
+        }))
+      }
     };
 
     res.status(200).json(stats);

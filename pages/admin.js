@@ -54,7 +54,6 @@ export default function AdminPage() {
           <h2 className="text-lg font-semibold mb-2">Основные показатели</h2>
           <ul className="space-y-2">
             <li>Всего сообщений: {stats.basicMetrics.totalMessages}</li>
-            <li>Сообщений пользователей: {stats.basicMetrics.userMessages}</li>
             <li>Сообщений бота: {stats.basicMetrics.botMessages}</li>
             <li>Уникальных пользователей: {stats.basicMetrics.uniqueUsers}</li>
             <li>Среднее кол-во сообщений на пользователя: {stats.basicMetrics.avgMessagesPerUser.toFixed(2)}</li>
@@ -98,13 +97,18 @@ export default function AdminPage() {
 
       {/* Популярные вопросы */}
       <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-2">Последние вопросы</h2>
+        <h2 className="text-lg font-semibold mb-2">Популярные вопросы</h2>
         <div className="space-y-2">
           {stats.popularQuestions.map((q, i) => (
-            <div key={i} className="flex justify-between">
-              <span className="flex-1">{q.question}</span>
-              <span className="text-gray-500 ml-4">
-                {new Date(q.timestamp).toLocaleString()}
+            <div key={i} className="flex justify-between items-center">
+              <div className="flex-1">
+                <span className="font-medium">{q.question}</span>
+                <span className="text-gray-500 ml-2">
+                  (Последний раз: {new Date(q.lastAsked).toLocaleString()})
+                </span>
+              </div>
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                {q.count} раз{q.count === 1 ? '' : 'а'}
               </span>
             </div>
           ))}
@@ -112,22 +116,30 @@ export default function AdminPage() {
       </div>
 
       {/* Популярность карточек */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-2">Популярность карточек</h2>
-        <div className="space-y-2">
-          {stats.cardPopularity.map((card, i) => (
-            <div key={i} className="flex justify-between">
-              <span>{card.title}</span>
-              <span>{card.clicks} кликов</span>
-            </div>
-          ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-2">Популярность карточек рекламодателей</h2>
+          <div className="space-y-2">
+            {stats.cardPopularity.advertiser.map((card, i) => (
+              <div key={i} className="flex justify-between">
+                <span>{card.title}</span>
+                <span>{card.clicks} кликов</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Среднее время между сообщениями */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-2">Время между сообщениями</h2>
-        <p>Среднее время: {stats.avgTimeBetweenMessages.toFixed(2)} секунд</p>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-2">Популярность карточек поставщиков</h2>
+          <div className="space-y-2">
+            {stats.cardPopularity.supplier.map((card, i) => (
+              <div key={i} className="flex justify-between">
+                <span>{card.title}</span>
+                <span>{card.clicks} кликов</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
