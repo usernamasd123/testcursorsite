@@ -169,7 +169,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Введите ваше сообщение... (*курсив*, **жирный**, `код`)"
+                placeholder="Введите ваше сообщение..."
                 className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
