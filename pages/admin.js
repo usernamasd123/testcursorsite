@@ -7,6 +7,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('main');
   const router = useRouter();
 
@@ -31,12 +32,20 @@ export default function Admin() {
   };
 
   const fetchStats = async () => {
+    setIsLoading(true);
+    setError('');
     try {
       const response = await fetch('/api/stats');
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке статистики');
+      }
       const data = await response.json();
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setError('Произошла ошибка при загрузке статистики. Пожалуйста, попробуйте позже.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,13 +107,28 @@ export default function Admin() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Панель администратора</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          >
-            Выйти
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={fetchStats}
+              disabled={isLoading}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
+            >
+              {isLoading ? 'Обновление...' : 'Обновить'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              Выйти
+            </button>
+          </div>
         </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
 
         {/* Навигация по разделам */}
         <div className="flex space-x-4 mb-6">
@@ -140,7 +164,11 @@ export default function Admin() {
           </button>
         </div>
 
-        {stats ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : stats ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {activeTab === 'main' && (
               <>
@@ -238,7 +266,9 @@ export default function Admin() {
             )}
           </div>
         ) : (
-          <div className="text-center">Загрузка статистики...</div>
+          <div className="text-center text-gray-600">
+            Нет данных для отображения
+          </div>
         )}
       </div>
     </div>

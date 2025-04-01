@@ -17,11 +17,12 @@ export default async function handler(req, res) {
 
     const uniqueUsers = await prisma.message.groupBy({
       by: ['userId'],
+      where: { userId: { not: null } },
       _count: true,
     });
 
     const totalDialogs = await prisma.userSession.count();
-    const avgMessagesPerUser = totalMessages / uniqueUsers.length;
+    const avgMessagesPerUser = uniqueUsers.length > 0 ? totalMessages / uniqueUsers.length : 0;
 
     // Статистика по заявкам
     const leads = await prisma.message.groupBy({
@@ -55,7 +56,7 @@ export default async function handler(req, res) {
     const returningUsers = await prisma.userSession.count({
       where: { isReturning: true }
     });
-    const returningRate = (returningUsers / totalDialogs) * 100;
+    const returningRate = totalDialogs > 0 ? (returningUsers / totalDialogs) * 100 : 0;
 
     // Популярные вопросы
     const popularQuestions = await prisma.message.groupBy({
@@ -73,6 +74,7 @@ export default async function handler(req, res) {
     // Популярность карточек
     const cardPopularity = await prisma.message.groupBy({
       by: ['cardId'],
+      where: { cardId: { not: null } },
       _count: true,
       orderBy: {
         _count: {
@@ -97,15 +99,14 @@ export default async function handler(req, res) {
       }
     });
 
-    const avgTimeBetweenMessages = userSessions.reduce((acc, session) => {
-      if (session.lastMessageTime) {
-        const timeDiff = session.endTime ? 
-          session.endTime - session.startTime : 
-          new Date() - session.startTime;
-        return acc + (timeDiff / session.messageCount);
-      }
-      return acc;
-    }, 0) / userSessions.length;
+    let avgTimeBetweenMessages = 0;
+    if (userSessions.length > 0) {
+      const totalTime = userSessions.reduce((acc, session) => {
+        const timeDiff = new Date() - new Date(session.lastMessageTime);
+        return acc + (timeDiff / (session.messageCount || 1));
+      }, 0);
+      avgTimeBetweenMessages = totalTime / userSessions.length;
+    }
 
     // Форматируем данные для ответа
     const stats = {
@@ -117,20 +118,20 @@ export default async function handler(req, res) {
         bot: botMessages
       },
       leads: {
-        advertisers: leads.find(l => l.leadType === 'advertiser')?._count || 0,
-        suppliers: leads.find(l => l.leadType === 'supplier')?._count || 0
+        advertisers: leads.find(l => l.leadType === 'advertisers')?._count || 0,
+        suppliers: leads.find(l => l.leadType === 'suppliers')?._count || 0
       },
       avgMessagesPerUser: Math.round(avgMessagesPerUser * 100) / 100,
       hourlyActivity: hourlyActivity.map(hour => ({
         hour: hour.hour,
         count: hour._count,
       })),
-      maxHourlyActivity: Math.max(...hourlyActivity.map(h => h._count)),
+      maxHourlyActivity: hourlyActivity.length > 0 ? Math.max(...hourlyActivity.map(h => h._count)) : 0,
 
       // Качество
       ratings: {
-        positive: ratings.find(r => r.rating === 1)?._count || 0,
-        negative: ratings.find(r => r.rating === -1)?._count || 0
+        positive: ratings.find(r => r.rating === 'positive')?._count || 0,
+        negative: ratings.find(r => r.rating === 'negative')?._count || 0
       },
       botErrors,
       returningRate: Math.round(returningRate * 100) / 100,
