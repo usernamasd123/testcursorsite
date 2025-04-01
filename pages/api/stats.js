@@ -198,6 +198,12 @@ export default async function handler(req, res) {
     };
 
     console.log('Stats calculation completed successfully');
+    
+    // Отключаем кэширование для этого ответа
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     res.status(200).json(stats);
   } catch (error) {
     console.error('Detailed error in stats calculation:', error);

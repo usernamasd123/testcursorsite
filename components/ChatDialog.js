@@ -16,6 +16,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     '👎': '👎'
   });
   const messagesEndRef = useRef(null);
+  const [error, setError] = useState(null);
 
   // Предустановленные быстрые ответы
   const quickReplies = [
@@ -51,87 +52,84 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     await sendMessage(inputMessage);
   };
 
-  const sendMessage = async (text) => {
-    const userMessage = text;
-    const messageId = Date.now().toString();
-    setInputMessage('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage, id: messageId }]);
-    setIsLoading(true);
-
-    const startTime = Date.now();
-    const userId = localStorage.getItem('userId') || Math.random().toString(36).substring(7);
-    localStorage.setItem('userId', userId);
+  const sendMessage = async (content) => {
+    if (!content.trim()) return;
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          cardData,
-          userId,
-        }),
-      });
+      setIsLoading(true);
+      setError(null);
 
-      const data = await response.json();
-      const endTime = Date.now();
-      const responseTime = endTime - startTime;
-      const botMessageId = (Date.now() + 1).toString();
+      // Добавляем сообщение пользователя
+      const userMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content,
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, userMessage]);
 
       // Сохраняем сообщение пользователя
-      await fetch('/api/messages', {
+      const savedUserMessage = await fetch('/api/chat/message', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: messageId,
-          content: userMessage,
+          content,
           role: 'user',
-          userId,
-          cardId: cardData.id,
-          hour: new Date().getHours(),
-        }),
-      });
+          dialogueId: dialogueId
+        })
+      }).then(res => res.json());
 
-      // Сохраняем ответ бота
-      await fetch('/api/messages', {
+      // Получаем ответ от бота
+      const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: botMessageId,
-          content: data.message,
-          role: 'assistant',
-          userId,
-          cardId: cardData.id,
-          responseTime,
-          hour: new Date().getHours(),
-        }),
+          messages: [...messages, userMessage],
+          dialogueId: dialogueId
+        })
       });
 
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.message,
-        id: botMessageId,
-        reactions: []
-      }]);
+      if (!response.ok) {
+        throw new Error('Ошибка при получении ответа от бота');
+      }
+
+      const data = await response.json();
+      
+      // Добавляем ответ бота
+      const botMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.content,
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, botMessage]);
+
+      // Сохраняем сообщение бота
+      const savedBotMessage = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: data.content,
+          role: 'assistant',
+          dialogueId: dialogueId,
+          isError: data.isError || false
+        })
+      }).then(res => res.json());
+
+      // Обновляем статистику
+      await fetch('/api/stats', { method: 'GET' });
 
       // Проверяем, является ли сообщение заявкой
-      if (data.message.toLowerCase().includes('заявка') || data.message.toLowerCase().includes('оставить заявку')) {
+      if (data.content.toLowerCase().includes('заявка') || data.content.toLowerCase().includes('оставить заявку')) {
         setIsLead(true);
         setLeadType(cardData.type === 'advertiser' ? 'advertisers' : 'suppliers');
       }
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Извините, произошла ошибка. Пожалуйста, попробуйте позже.',
-        id: Date.now().toString()
-      }]);
+
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.');
     } finally {
       setIsLoading(false);
     }
