@@ -17,6 +17,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   });
   const messagesEndRef = useRef(null);
   const [error, setError] = useState(null);
+  const [dialogueId, setDialogueId] = useState(null);
 
   // Предустановленные быстрые ответы
   const quickReplies = [
@@ -26,16 +27,29 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     "Какие гарантии вы предоставляете?"
   ];
 
-  // Приветственное сообщение при открытии чата
+  // Создаем новый диалог при открытии чата
   useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([{
-        role: 'assistant',
-        content: `Здравствуйте! Я помощник по вопросам о ${cardData.title}. Чем могу помочь?`,
-        id: Date.now().toString()
-      }]);
+    if (isOpen && !dialogueId) {
+      createDialogue();
     }
-  }, [isOpen, cardData.title]);
+  }, [isOpen]);
+
+  const createDialogue = async () => {
+    try {
+      const response = await fetch('/api/chat/dialogue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cardId: cardData.id
+        })
+      });
+      const data = await response.json();
+      setDialogueId(data.id);
+    } catch (err) {
+      console.error('Error creating dialogue:', err);
+      setError('Ошибка при создании диалога');
+    }
+  };
 
   // Автопрокрутка
   useEffect(() => {
@@ -53,7 +67,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   };
 
   const sendMessage = async (content) => {
-    if (!content.trim()) return;
+    if (!content.trim() || !dialogueId) return;
 
     try {
       setIsLoading(true);
@@ -76,7 +90,9 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         body: JSON.stringify({
           content,
           role: 'user',
-          dialogueId: dialogueId
+          dialogueId,
+          cardId: cardData.id,
+          hour: new Date().getHours()
         })
       }).then(res => res.json());
 
@@ -85,8 +101,9 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
-          dialogueId: dialogueId
+          message: content,
+          cardData,
+          dialogueId
         })
       });
 
@@ -100,7 +117,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       const botMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.content,
+        content: data.message,
         timestamp: new Date().toISOString()
       };
 
@@ -111,20 +128,19 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: data.content,
+          content: data.message,
           role: 'assistant',
-          dialogueId: dialogueId,
+          dialogueId,
+          cardId: cardData.id,
+          hour: new Date().getHours(),
           isError: data.isError || false
         })
       }).then(res => res.json());
 
-      // Обновляем статистику
-      await fetch('/api/stats', { method: 'GET' });
-
       // Проверяем, является ли сообщение заявкой
-      if (data.content.toLowerCase().includes('заявка') || data.content.toLowerCase().includes('оставить заявку')) {
+      if (data.message.toLowerCase().includes('заявка') || data.message.toLowerCase().includes('оставить заявку')) {
         setIsLead(true);
-        setLeadType(cardData.type === 'advertiser' ? 'advertisers' : 'suppliers');
+        setLeadType(cardData.type === 'advertiser' ? 'advertiser' : 'supplier');
       }
 
     } catch (err) {
@@ -132,6 +148,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       setError('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.');
     } finally {
       setIsLoading(false);
+      setInputMessage('');
     }
   };
 
