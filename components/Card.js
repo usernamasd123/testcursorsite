@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ChatDialog from './ChatDialog';
 
-export default function Card({ title, description, features }) {
+export default function Card({ id, title, description, features }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleContactClick = async () => {
@@ -13,12 +13,12 @@ export default function Card({ title, description, features }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cardId: card.id
+          cardId: id
         }),
       });
 
       // Открываем чат
-      onContactClick(card);
+      setIsChatOpen(true);
     } catch (error) {
       console.error('Error tracking card click:', error);
     }
@@ -50,7 +50,7 @@ export default function Card({ title, description, features }) {
       <ChatDialog
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-        cardData={{ title, description, features }}
+        cardData={{ id, title, description, features }}
       />
     </>
   );

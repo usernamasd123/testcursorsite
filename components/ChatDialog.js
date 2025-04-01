@@ -13,10 +13,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   const [leadType, setLeadType] = useState(null);
   const [reactions, setReactions] = useState({
     '👍': '👍',
-    '👎': '��',
-    '❤️': '❤️',
-    '😊': '😊',
-    '🤔': '🤔'
+    '👎': '👎'
   });
   const messagesEndRef = useRef(null);
 
