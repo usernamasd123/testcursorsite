@@ -8,6 +8,9 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [copySuccess, setCopySuccess] = useState(null);
+  const [rating, setRating] = useState(null);
+  const [isLead, setIsLead] = useState(false);
+  const [leadType, setLeadType] = useState(null);
   const messagesEndRef = useRef(null);
 
   // Предустановленные быстрые ответы
@@ -102,6 +105,12 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       });
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+
+      // Проверяем, является ли сообщение заявкой
+      if (data.message.toLowerCase().includes('заявка') || data.message.toLowerCase().includes('оставить заявку')) {
+        setIsLead(true);
+        setLeadType(cardData.type === 'advertiser' ? 'advertisers' : 'suppliers');
+      }
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
@@ -133,6 +142,27 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       setTimeout(() => setCopySuccess(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleRating = async (value) => {
+    if (rating === value) return;
+    
+    setRating(value);
+    
+    try {
+      await fetch('/api/stats/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageId: messages[messages.length - 1].id,
+          rating: value,
+        }),
+      });
+    } catch (error) {
+      console.error('Error sending rating:', error);
     }
   };
 

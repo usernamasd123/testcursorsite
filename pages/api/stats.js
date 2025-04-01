@@ -6,21 +6,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Получаем общую статистику
+    // Основные метрики
     const totalMessages = await prisma.message.count();
+    const userMessages = await prisma.message.count({
+      where: { role: 'user' }
+    });
+    const botMessages = await prisma.message.count({
+      where: { role: 'assistant' }
+    });
+
     const uniqueUsers = await prisma.message.groupBy({
       by: ['userId'],
       _count: true,
     });
 
-    // Получаем среднее время ответа
-    const avgResponseTime = await prisma.message.aggregate({
-      _avg: {
-        responseTime: true,
-      },
+    const totalDialogs = await prisma.userSession.count();
+    const avgMessagesPerUser = totalMessages / uniqueUsers.length;
+
+    // Статистика по заявкам
+    const leads = await prisma.message.groupBy({
+      by: ['leadType'],
+      where: { isLead: true },
+      _count: true,
     });
 
-    // Получаем активность по часам
+    // Активность по часам
     const hourlyActivity = await prisma.message.groupBy({
       by: ['hour'],
       _count: true,
@@ -29,32 +39,115 @@ export default async function handler(req, res) {
       },
     });
 
-    // Получаем популярные темы
-    const popularTopics = await prisma.message.groupBy({
-      by: ['topic'],
+    // Качество ответов
+    const ratings = await prisma.message.groupBy({
+      by: ['rating'],
+      where: { rating: { not: null } },
+      _count: true,
+    });
+
+    // Ошибки бота
+    const botErrors = await prisma.message.count({
+      where: { isError: true }
+    });
+
+    // Повторные обращения
+    const returningUsers = await prisma.userSession.count({
+      where: { isReturning: true }
+    });
+    const returningRate = (returningUsers / totalDialogs) * 100;
+
+    // Популярные вопросы
+    const popularQuestions = await prisma.message.groupBy({
+      by: ['content'],
+      where: { role: 'user' },
       _count: true,
       orderBy: {
         _count: {
-          topic: 'desc',
+          content: 'desc',
         },
       },
-      take: 5,
+      take: 10,
     });
+
+    // Популярность карточек
+    const cardPopularity = await prisma.message.groupBy({
+      by: ['cardId'],
+      _count: true,
+      orderBy: {
+        _count: {
+          cardId: 'desc',
+        },
+      },
+    });
+
+    // Получаем информацию о карточках
+    const cards = await prisma.card.findMany({
+      where: {
+        id: {
+          in: cardPopularity.map(c => c.cardId)
+        }
+      }
+    });
+
+    // Среднее время между сообщениями
+    const userSessions = await prisma.userSession.findMany({
+      where: {
+        lastMessageTime: { not: null }
+      }
+    });
+
+    const avgTimeBetweenMessages = userSessions.reduce((acc, session) => {
+      if (session.lastMessageTime) {
+        const timeDiff = session.endTime ? 
+          session.endTime - session.startTime : 
+          new Date() - session.startTime;
+        return acc + (timeDiff / session.messageCount);
+      }
+      return acc;
+    }, 0) / userSessions.length;
 
     // Форматируем данные для ответа
     const stats = {
-      totalMessages,
-      uniqueUsers: uniqueUsers.length,
-      avgResponseTime: Math.round(avgResponseTime._avg.responseTime || 0),
+      // Основные метрики
+      totalDialogs,
+      messages: {
+        total: totalMessages,
+        user: userMessages,
+        bot: botMessages
+      },
+      leads: {
+        advertisers: leads.find(l => l.leadType === 'advertiser')?._count || 0,
+        suppliers: leads.find(l => l.leadType === 'supplier')?._count || 0
+      },
+      avgMessagesPerUser: Math.round(avgMessagesPerUser * 100) / 100,
       hourlyActivity: hourlyActivity.map(hour => ({
         hour: hour.hour,
         count: hour._count,
       })),
       maxHourlyActivity: Math.max(...hourlyActivity.map(h => h._count)),
-      popularTopics: popularTopics.map(topic => ({
-        name: topic.topic,
-        count: topic._count,
+
+      // Качество
+      ratings: {
+        positive: ratings.find(r => r.rating === 1)?._count || 0,
+        negative: ratings.find(r => r.rating === -1)?._count || 0
+      },
+      botErrors,
+      returningRate: Math.round(returningRate * 100) / 100,
+      popularQuestions: popularQuestions.map(q => ({
+        question: q.content,
+        count: q._count
       })),
+
+      // Остальное
+      cardPopularity: cardPopularity.map(cp => {
+        const card = cards.find(c => c.id === cp.cardId);
+        return {
+          title: card?.title || 'Неизвестная карточка',
+          count: cp._count
+        };
+      }),
+      avgTimeBetweenMessages: Math.round(avgTimeBetweenMessages / 1000) // в секундах
     };
 
     res.status(200).json(stats);

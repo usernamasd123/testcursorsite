@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,18 +11,38 @@ datasource db {
 }
 
 model Message {
-  id          String   @id @default(cuid())
-  content     String
-  role        String   // 'user' или 'assistant'
-  userId      String
-  cardId      String
-  topic       String?
-  responseTime Int?
-  hour        Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  content   String
+  role      String   // 'user' или 'assistant'
+  timestamp DateTime @default(now())
+  rating    String?  // 'positive' или 'negative'
+  isError   Boolean  @default(false)
+  isLead    Boolean  @default(false)
+  leadType  String?  // 'advertisers' или 'suppliers'
+  cardId    String?
+  userId    String?
+  hour      Int      @default(0)
 
   @@index([userId])
   @@index([cardId])
   @@index([hour])
+}
+
+model Card {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // 'advertiser' или 'supplier'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserSession {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  messageCount    Int      @default(0)
+  isReturning     Boolean  @default(false)
+  lastMessageTime DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 } 

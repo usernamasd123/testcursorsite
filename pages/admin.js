@@ -7,6 +7,7 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('main');
   const router = useRouter();
 
   useEffect(() => {
@@ -105,46 +106,136 @@ export default function Admin() {
           </button>
         </div>
 
+        {/* Навигация по разделам */}
+        <div className="flex space-x-4 mb-6">
+          <button
+            onClick={() => setActiveTab('main')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'main'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Основные метрики
+          </button>
+          <button
+            onClick={() => setActiveTab('quality')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'quality'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Качество
+          </button>
+          <button
+            onClick={() => setActiveTab('other')}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === 'other'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Остальное
+          </button>
+        </div>
+
         {stats ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Общая статистика</h2>
-              <div className="space-y-2">
-                <p>Всего сообщений: {stats.totalMessages}</p>
-                <p>Уникальных пользователей: {stats.uniqueUsers}</p>
-                <p>Среднее время ответа: {stats.avgResponseTime}мс</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Активность по часам</h2>
-              <div className="space-y-2">
-                {stats.hourlyActivity.map((hour, index) => (
-                  <div key={index} className="flex items-center">
-                    <span className="w-20">{hour.hour}:00</span>
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${(hour.count / stats.maxHourlyActivity) * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="ml-2">{hour.count}</span>
+            {activeTab === 'main' && (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Общая статистика</h2>
+                  <div className="space-y-2">
+                    <p>Всего диалогов: {stats.totalDialogs}</p>
+                    <p>Сообщений пользователей: {stats.messages.user}</p>
+                    <p>Сообщений бота: {stats.messages.bot}</p>
+                    <p>Среднее количество сообщений на пользователя: {stats.avgMessagesPerUser}</p>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4">Популярные темы</h2>
-              <div className="space-y-2">
-                {stats.popularTopics.map((topic, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span>{topic.name}</span>
-                    <span className="text-gray-600">{topic.count}</span>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Заявки</h2>
+                  <div className="space-y-2">
+                    <p>Рекламодатели: {stats.leads.advertisers}</p>
+                    <p>Поставщики: {stats.leads.suppliers}</p>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Активность по часам</h2>
+                  <div className="space-y-2">
+                    {stats.hourlyActivity.map((hour, index) => (
+                      <div key={index} className="flex items-center">
+                        <span className="w-20">{hour.hour}:00</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: `${(hour.count / stats.maxHourlyActivity) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="ml-2">{hour.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'quality' && (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Удовлетворенность ответами</h2>
+                  <div className="space-y-2">
+                    <p>👍 Положительные: {stats.ratings.positive}</p>
+                    <p>👎 Отрицательные: {stats.ratings.negative}</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Ошибки и повторные обращения</h2>
+                  <div className="space-y-2">
+                    <p>Ошибки бота: {stats.botErrors}</p>
+                    <p>Процент повторных обращений: {stats.returningRate}%</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Топ-10 вопросов</h2>
+                  <div className="space-y-2">
+                    {stats.popularQuestions.map((q, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm">{q.question}</span>
+                        <span className="text-gray-600">{q.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'other' && (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Популярность карточек</h2>
+                  <div className="space-y-2">
+                    {stats.cardPopularity.map((card, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span>{card.title}</span>
+                        <span className="text-gray-600">{card.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h2 className="text-xl font-semibold mb-4">Среднее время между сообщениями</h2>
+                  <div className="space-y-2">
+                    <p>{stats.avgTimeBetweenMessages} секунд</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="text-center">Загрузка статистики...</div>
