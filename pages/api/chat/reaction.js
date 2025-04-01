@@ -12,7 +12,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const message = await prisma.message.update({
+    // Получаем текущее сообщение
+    const message = await prisma.message.findUnique({
+      where: { id: messageId }
+    });
+
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    // Обновляем сообщение с новой реакцией
+    const updatedMessage = await prisma.message.update({
       where: { id: messageId },
       data: {
         reactions: {
@@ -21,7 +31,7 @@ export default async function handler(req, res) {
       }
     });
 
-    return res.status(200).json(message);
+    return res.status(200).json(updatedMessage);
   } catch (error) {
     console.error('Error adding reaction:', error);
     return res.status(500).json({ message: 'Internal server error' });

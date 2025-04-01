@@ -30,7 +30,8 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     if (isOpen && messages.length === 0) {
       setMessages([{
         role: 'assistant',
-        content: `Здравствуйте! Я помощник по вопросам о ${cardData.title}. Чем могу помочь?`
+        content: `Здравствуйте! Я помощник по вопросам о ${cardData.title}. Чем могу помочь?`,
+        id: Date.now().toString()
       }]);
     }
   }, [isOpen, cardData.title]);
@@ -52,8 +53,9 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
 
   const sendMessage = async (text) => {
     const userMessage = text;
+    const messageId = Date.now().toString();
     setInputMessage('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', content: userMessage, id: messageId }]);
     setIsLoading(true);
 
     const startTime = Date.now();
@@ -76,6 +78,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       const data = await response.json();
       const endTime = Date.now();
       const responseTime = endTime - startTime;
+      const botMessageId = (Date.now() + 1).toString();
 
       // Сохраняем сообщение пользователя
       await fetch('/api/messages', {
@@ -84,6 +87,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id: messageId,
           content: userMessage,
           role: 'user',
           userId,
@@ -99,6 +103,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id: botMessageId,
           content: data.message,
           role: 'assistant',
           userId,
@@ -108,7 +113,12 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         }),
       });
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.message,
+        id: botMessageId,
+        reactions: []
+      }]);
 
       // Проверяем, является ли сообщение заявкой
       if (data.message.toLowerCase().includes('заявка') || data.message.toLowerCase().includes('оставить заявку')) {
@@ -119,7 +129,8 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Извините, произошла ошибка. Пожалуйста, попробуйте позже.' 
+        content: 'Извините, произошла ошибка. Пожалуйста, попробуйте позже.',
+        id: Date.now().toString()
       }]);
     } finally {
       setIsLoading(false);
@@ -248,7 +259,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((message, index) => (
                 <div
-                  key={index}
+                  key={message.id || index}
                   className={`flex ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   } animate-fade-in`}
@@ -264,6 +275,23 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
                         __html: formatMessage(message.content) 
                       }}
                     />
+                    {message.role === 'assistant' && (
+                      <div className="mt-2 flex items-center space-x-2">
+                        {Object.values(reactions).map((reaction) => (
+                          <button
+                            key={reaction}
+                            onClick={() => handleReaction(message.id, reaction)}
+                            className={`text-xl ${
+                              message.reactions?.includes(reaction)
+                                ? 'text-blue-500'
+                                : 'text-gray-400'
+                            }`}
+                          >
+                            {reaction}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <button
                       onClick={() => copyMessage(message.content)}
                       className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 text-gray-500 hover:text-gray-700"
