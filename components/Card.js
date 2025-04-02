@@ -7,7 +7,7 @@ export default function Card({ id, title, description, features }) {
   const handleContactClick = async () => {
     try {
       // Увеличиваем счетчик кликов
-      await fetch('/api/cards/click', {
+      await fetch('/api/card/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
