@@ -46,3 +46,14 @@ model UserSession {
   updatedAt       DateTime @updatedAt
   messageTimes    DateTime[]
 }
+
+model Dialogue {
+  id        String   @id @default(cuid())
+  cardId    String
+  startTime DateTime @default(now())
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cardId])
+}
