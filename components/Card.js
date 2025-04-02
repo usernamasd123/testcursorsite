@@ -4,9 +4,18 @@ import ChatDialog from './ChatDialog';
 export default function Card({ id, title, description, features }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  console.log('Рендер карточки:', { id, title, description, features });
+
   const handleContactClick = async () => {
     try {
       console.log('Нажата кнопка "Связаться" для карточки:', id);
+      console.log('Полные данные карточки:', { id, title, description, features });
+
+      if (!id) {
+        console.error('Ошибка: ID карточки не определен');
+        return;
+      }
+
       // Увеличиваем счетчик кликов
       const response = await fetch('/api/cards/click', {
         method: 'POST',

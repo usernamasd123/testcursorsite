@@ -151,14 +151,26 @@ export default function Advertisers() {
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Преимущества для рекламодателей</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16">
             {cards.map((card) => (
-              <Card key={card.id} {...card} />
+              <Card 
+                key={card.id}
+                id={card.id}
+                title={card.title}
+                description={card.description}
+                features={card.features}
+              />
             ))}
           </div>
           
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {trafficProviders.map((provider) => (
-              <Card key={provider.id} {...provider} />
+              <Card 
+                key={provider.id}
+                id={provider.id}
+                title={provider.title}
+                description={provider.description}
+                features={provider.features}
+              />
             ))}
           </div>
         </div>
