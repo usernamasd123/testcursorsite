@@ -8,26 +8,41 @@ datasource db {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  content   String
-  role      String
-  userId    String?
-  cardId    String?
-  hour      Int      @default(0)
-  isError   Boolean  @default(false)
-  isLead    Boolean  @default(false)
-  leadType  String?
-  rating    String?
-  timestamp DateTime @default(now())
-  reactions String[] @default([])
+  id          String   @id @default(cuid())
+  content     String
+  role        String
+  userId      String?
+  cardId      String?
+  hour        Int      @default(0)
+  isError     Boolean  @default(false)
+  isLead      Boolean  @default(false)
+  leadType    String?
+  rating      String?
+  sessionId   String
+  session     UserSession @relation(fields: [sessionId], references: [id])
+  reactions   MessageReaction[]
+  timestamp   DateTime @default(now())
 
   @@index([userId])
   @@index([cardId])
   @@index([hour])
 }
 
-model Card {
+model MessageReaction {
   id          String   @id @default(cuid())
+  messageId   String
+  message     Message  @relation(fields: [messageId], references: [id])
+  sessionId   String
+  session     UserSession @relation(fields: [sessionId], references: [id])
+  type        String   // 'like', 'dislike'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([messageId, sessionId])
+}
+
+model Card {
+  id          String   @id
   title       String
   description String
   type        String
@@ -46,6 +61,8 @@ model UserSession {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   messageTimes    DateTime[]
+  messages        Message[]
+  reactions       MessageReaction[]
 }
 
 model Dialogue {

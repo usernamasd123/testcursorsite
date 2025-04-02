@@ -158,6 +158,25 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Статистика реакций */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Реакции на сообщения</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-500">{stats.reactions.likes}</div>
+            <div className="text-sm text-gray-500">Положительных</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-red-500">{stats.reactions.dislikes}</div>
+            <div className="text-sm text-gray-500">Отрицательных</div>
+          </div>
+          <div className="text-center col-span-2">
+            <div className="text-2xl font-bold text-blue-500">{stats.reactions.ratio}%</div>
+            <div className="text-sm text-gray-500">Положительных реакций</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 

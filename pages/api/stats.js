@@ -100,6 +100,29 @@ export default async function handler(req, res) {
       take: 5
     });
 
+    // Получаем статистику реакций
+    const reactions = await prisma.messageReaction.groupBy({
+      by: ['type'],
+      _count: {
+        _all: true
+      }
+    });
+
+    const reactionStats = {
+      likes: 0,
+      dislikes: 0,
+      total: 0
+    };
+
+    reactions.forEach(reaction => {
+      if (reaction.type === 'like') {
+        reactionStats.likes = reaction._count._all;
+      } else if (reaction.type === 'dislike') {
+        reactionStats.dislikes = reaction._count._all;
+      }
+      reactionStats.total += reaction._count._all;
+    });
+
     // Формируем ответ
     const stats = {
       basicMetrics: {
@@ -142,6 +165,12 @@ export default async function handler(req, res) {
           title: c.title,
           clicks: c.clicks
         }))
+      },
+      reactions: {
+        likes: reactionStats.likes,
+        dislikes: reactionStats.dislikes,
+        total: reactionStats.total,
+        ratio: reactionStats.total > 0 ? (reactionStats.likes / reactionStats.total * 100).toFixed(1) : 0
       }
     };
 
