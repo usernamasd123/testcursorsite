@@ -7,7 +7,7 @@ export default function Card({ id, title, description, features }) {
   const handleContactClick = async () => {
     try {
       // Увеличиваем счетчик кликов
-      await fetch('/api/card/click', {
+      const response = await fetch('/api/card/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -16,6 +16,13 @@ export default function Card({ id, title, description, features }) {
           cardId: id
         }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to track click');
+      }
+
+      // Отправляем событие обновления статистики
+      window.dispatchEvent(new CustomEvent('statsUpdate'));
 
       // Открываем чат
       setIsChatOpen(true);

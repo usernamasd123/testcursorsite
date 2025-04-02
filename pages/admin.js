@@ -5,31 +5,44 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/stats');
-        if (!response.ok) {
-          throw new Error('Failed to fetch stats');
-        }
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        setStats(data);
-        setError(null);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/stats');
+      if (!response.ok) {
+        throw new Error('Failed to fetch stats');
       }
-    };
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      setStats(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    // Загружаем статистику при монтировании компонента
     fetchStats();
-    // Обновляем статистику каждые 30 секунд
+
+    // Добавляем обработчик события обновления статистики
+    const handleStatsUpdate = () => {
+      fetchStats();
+    };
+    window.addEventListener('statsUpdate', handleStatsUpdate);
+
+    // Устанавливаем интервал обновления каждые 30 секунд
     const interval = setInterval(fetchStats, 30000);
-    return () => clearInterval(interval);
+
+    // Очищаем обработчики при размонтировании компонента
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('statsUpdate', handleStatsUpdate);
+    };
   }, []);
 
   if (loading) {
