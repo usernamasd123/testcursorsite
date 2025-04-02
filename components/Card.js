@@ -6,8 +6,9 @@ export default function Card({ id, title, description, features }) {
 
   const handleContactClick = async () => {
     try {
+      console.log('Нажата кнопка "Связаться" для карточки:', id);
       // Увеличиваем счетчик кликов
-      const response = await fetch('/api/card/click', {
+      const response = await fetch('/api/cards/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -17,17 +18,24 @@ export default function Card({ id, title, description, features }) {
         }),
       });
 
+      console.log('Ответ от API:', response.status);
+      
       if (!response.ok) {
         throw new Error('Failed to track click');
       }
 
+      const data = await response.json();
+      console.log('Данные ответа:', data);
+
       // Отправляем событие обновления статистики
       window.dispatchEvent(new CustomEvent('statsUpdate'));
+      console.log('Отправлено событие statsUpdate');
 
       // Открываем чат
       setIsChatOpen(true);
+      console.log('Чат открыт');
     } catch (error) {
-      console.error('Error tracking card click:', error);
+      console.error('Ошибка при обработке клика:', error);
     }
   };
 
