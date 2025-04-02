@@ -1,100 +1,39 @@
+import { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Navbar from '../components/Navbar';
 import ContactForm from '../components/ContactForm';
 
 export default function TrafficProviders() {
-  const advertisers = [
-    {
-      id: "adpro",
-      title: "AdPro",
-      description: "Крупный рекламодатель с высокими бюджетами",
-      features: [
-        "Высокие ставки",
-        "Стабильные выплаты",
-        "Долгосрочное сотрудничество"
-      ]
-    },
-    {
-      id: "admaster",
-      title: "AdMaster",
-      description: "Опытный рекламодатель с разнообразными офферами",
-      features: [
-        "Разные вертикали",
-        "Гибкие условия",
-        "Быстрые выплаты"
-      ]
-    },
-    {
-      id: "adexpert",
-      title: "AdExpert",
-      description: "Специализированные рекламные кампании",
-      features: [
-        "Нишевые офферы",
-        "Высокий конверт",
-        "Персональный подход"
-      ]
-    },
-    {
-      id: "adflow",
-      title: "AdFlow",
-      description: "Стабильный рекламодатель с регулярными кампаниями",
-      features: [
-        "Регулярные выплаты",
-        "Прозрачные условия",
-        "Техническая поддержка"
-      ]
-    },
-    {
-      id: "adboost",
-      title: "AdBoost",
-      description: "Амбициозный рекламодатель с растущими бюджетами",
-      features: [
-        "Растущие бюджеты",
-        "Современные офферы",
-        "Быстрая обработка"
-      ]
-    },
-    {
-      id: "adprime",
-      title: "AdPrime",
-      description: "Премиальный рекламодатель с высокими ставками",
-      features: [
-        "Премиум-ставки",
-        "VIP-поддержка",
-        "Эксклюзивные условия"
-      ]
-    },
-    {
-      id: "adsmart",
-      title: "AdSmart",
-      description: "Инновационный рекламодатель с умными кампаниями",
-      features: [
-        "AI-оптимизация",
-        "Автоматизация",
-        "Умная аналитика"
-      ]
-    },
-    {
-      id: "adglobal",
-      title: "AdGlobal",
-      description: "Международный рекламодатель с глобальным охватом",
-      features: [
-        "Мультигео",
-        "Мультиязычность",
-        "Глобальная поддержка"
-      ]
-    },
-    {
-      id: "adelite",
-      title: "AdElite",
-      description: "Элитный рекламодатель с премиальными офферами",
-      features: [
-        "Премиум-офферы",
-        "VIP-поддержка",
-        "Приоритетная обработка"
-      ]
-    }
-  ];
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const response = await fetch('/api/cards?type=supplier');
+        if (!response.ok) {
+          throw new Error('Failed to fetch cards');
+        }
+        const data = await response.json();
+        setCards(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCards();
+  }, []);
+
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,15 +54,15 @@ export default function TrafficProviders() {
             description="Заполните форму, и мы свяжемся с вами для обсуждения деталей сотрудничества"
           />
           
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши рекламодатели</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {advertisers.map((advertiser) => (
+            {cards.map((card) => (
               <Card 
-                key={advertiser.id}
-                id={advertiser.id}
-                title={advertiser.title}
-                description={advertiser.description}
-                features={advertiser.features}
+                key={card.id}
+                id={card.id}
+                title={card.title}
+                description={card.description}
+                features={card.features}
               />
             ))}
           </div>

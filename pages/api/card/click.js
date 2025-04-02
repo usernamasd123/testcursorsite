@@ -14,6 +14,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Card ID is required' });
     }
 
+    // Проверяем существование карточки
+    const card = await prisma.card.findUnique({
+      where: { id: cardId }
+    });
+
+    if (!card) {
+      return res.status(404).json({ error: 'Card not found' });
+    }
+
     // Увеличиваем счетчик кликов для карточки
     const updatedCard = await prisma.card.update({
       where: { id: cardId },

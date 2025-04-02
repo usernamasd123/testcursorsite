@@ -35,99 +35,6 @@ export default function Advertisers() {
     return <div>Ошибка: {error}</div>;
   }
 
-  const trafficProviders = [
-    {
-      id: "traffic-pro",
-      title: "TrafficPro",
-      description: "Профессиональный поставщик качественного трафика",
-      features: [
-        "Высокий CTR",
-        "Геотаргетинг",
-        "Подробная аналитика"
-      ]
-    },
-    {
-      id: "traffic-master",
-      title: "TrafficMaster",
-      description: "Опытный партнер с большим охватом",
-      features: [
-        "Глобальный охват",
-        "Гибкие условия",
-        "Техническая поддержка"
-      ]
-    },
-    {
-      id: "traffic-expert",
-      title: "TrafficExpert",
-      description: "Специализированный трафик для вашего бизнеса",
-      features: [
-        "Нишевый трафик",
-        "Высокое качество",
-        "Индивидуальный подход"
-      ]
-    },
-    {
-      id: "traffic-flow",
-      title: "TrafficFlow",
-      description: "Стабильный поток целевого трафика",
-      features: [
-        "Постоянный объем",
-        "Высокое качество",
-        "Быстрая интеграция"
-      ]
-    },
-    {
-      id: "traffic-boost",
-      title: "TrafficBoost",
-      description: "Мощный источник трафика для роста",
-      features: [
-        "Масштабируемость",
-        "Конкурентные цены",
-        "Оперативная поддержка"
-      ]
-    },
-    {
-      id: "traffic-prime",
-      title: "TrafficPrime",
-      description: "Премиальный трафик для вашего бизнеса",
-      features: [
-        "Премиум-качество",
-        "Гарантированные показатели",
-        "Персональный менеджер"
-      ]
-    },
-    {
-      id: "traffic-smart",
-      title: "TrafficSmart",
-      description: "Умный трафик с AI-оптимизацией",
-      features: [
-        "AI-таргетинг",
-        "Автоматическая оптимизация",
-        "Умная аналитика"
-      ]
-    },
-    {
-      id: "traffic-global",
-      title: "TrafficGlobal",
-      description: "Международный трафик высокого качества",
-      features: [
-        "Мультигео",
-        "Мультиязычность",
-        "Глобальная поддержка"
-      ]
-    },
-    {
-      id: "traffic-elite",
-      title: "TrafficElite",
-      description: "Элитный трафик для премиум-клиентов",
-      features: [
-        "VIP-поддержка",
-        "Эксклюзивные условия",
-        "Приоритетная обработка"
-      ]
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -156,19 +63,6 @@ export default function Advertisers() {
                 title={card.title}
                 description={card.description}
                 features={card.features}
-              />
-            ))}
-          </div>
-          
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {trafficProviders.map((provider) => (
-              <Card 
-                key={provider.id}
-                id={provider.id}
-                title={provider.title}
-                description={provider.description}
-                features={provider.features}
               />
             ))}
           </div>
