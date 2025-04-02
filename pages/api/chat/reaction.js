@@ -6,13 +6,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messageId, reaction } = req.body;
+    const { messageId, type, sessionId } = req.body;
 
-    if (!messageId || !reaction) {
+    if (!messageId || !type || !sessionId) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Получаем текущее сообщение
+    // Проверяем существование сообщения
     const message = await prisma.message.findUnique({
       where: { id: messageId }
     });
@@ -21,19 +21,37 @@ export default async function handler(req, res) {
       return res.status(404).json({ message: 'Message not found' });
     }
 
-    // Обновляем сообщение с новой реакцией
-    const updatedMessage = await prisma.message.update({
-      where: { id: messageId },
-      data: {
-        reactions: {
-          push: reaction
+    // Проверяем существование сессии
+    const session = await prisma.userSession.findUnique({
+      where: { id: sessionId }
+    });
+
+    if (!session) {
+      // Если сессия не найдена, создаем новую
+      const newSession = await prisma.userSession.create({
+        data: {
+          id: sessionId,
+          userId: 'default-user',
+          messageCount: 0,
+          isReturning: false,
+          lastMessageTime: new Date(),
+          messageTimes: []
         }
+      });
+    }
+
+    // Создаем реакцию
+    const reaction = await prisma.messageReaction.create({
+      data: {
+        messageId,
+        sessionId,
+        type
       }
     });
 
-    return res.status(200).json(updatedMessage);
+    res.status(201).json(reaction);
   } catch (error) {
     console.error('Error adding reaction:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Error adding reaction', error: error.message });
   }
 } 

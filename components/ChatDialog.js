@@ -205,7 +205,8 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         },
         body: JSON.stringify({
           messageId,
-          reaction,
+          type: reaction === '👍' ? 'like' : 'dislike',
+          sessionId: 'default-session'
         }),
       });
 
