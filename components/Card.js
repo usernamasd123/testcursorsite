@@ -7,42 +7,33 @@ export default function Card({ id, title, description, features }) {
   console.log('Рендер карточки:', { id, title, description, features });
 
   const handleContactClick = async () => {
+    console.log('Нажата кнопка "Связаться" для карточки:', id);
+    console.log('Полные данные карточки:', { id, title, description, features });
+
+    if (!id) {
+      console.error('Ошибка: ID карточки не определен');
+      return;
+    }
+
     try {
-      console.log('Нажата кнопка "Связаться" для карточки:', id);
-      console.log('Полные данные карточки:', { id, title, description, features });
-
-      if (!id) {
-        console.error('Ошибка: ID карточки не определен');
-        return;
-      }
-
-      // Увеличиваем счетчик кликов
-      const response = await fetch('/api/cards/click', {
+      const response = await fetch('/api/card/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          cardId: id
-        }),
+        body: JSON.stringify({ cardId: id }),
       });
 
       console.log('Ответ от API:', response.status);
-      
+      const data = await response.json();
+      console.log('Данные от API:', data);
+
       if (!response.ok) {
         throw new Error('Failed to track click');
       }
 
-      const data = await response.json();
-      console.log('Данные ответа:', data);
-
-      // Отправляем событие обновления статистики
-      window.dispatchEvent(new CustomEvent('statsUpdate'));
-      console.log('Отправлено событие statsUpdate');
-
-      // Открываем чат
+      // Открываем чат после успешного отслеживания клика
       setIsChatOpen(true);
-      console.log('Чат открыт');
     } catch (error) {
       console.error('Ошибка при обработке клика:', error);
     }

@@ -129,28 +129,32 @@ export default function AdminPage() {
       </div>
 
       {/* Популярность карточек */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Популярность карточек рекламодателей</h2>
-          <div className="space-y-2">
-            {stats.cardPopularity.advertiser.map((card, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{card.title}</span>
-                <span>{card.clicks} кликов</span>
-              </div>
-            ))}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Популярность карточек</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Карточки рекламодателей */}
+          <div>
+            <h4 className="text-md font-medium text-gray-700 mb-2">Рекламодатели</h4>
+            <div className="space-y-2">
+              {stats.cardPopularity.advertisers.map((card, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">{card.title}</span>
+                  <span className="text-sm font-medium text-gray-900">{card.clicks} кликов</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Популярность карточек поставщиков</h2>
-          <div className="space-y-2">
-            {stats.cardPopularity.supplier.map((card, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{card.title}</span>
-                <span>{card.clicks} кликов</span>
-              </div>
-            ))}
+          {/* Карточки поставщиков */}
+          <div>
+            <h4 className="text-md font-medium text-gray-700 mb-2">Поставщики</h4>
+            <div className="space-y-2">
+              {stats.cardPopularity.suppliers.map((card, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">{card.title}</span>
+                  <span className="text-sm font-medium text-gray-900">{card.clicks} кликов</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

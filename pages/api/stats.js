@@ -79,23 +79,25 @@ export default async function handler(req, res) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
-    // Популярность карточек по типам
+    // Получаем популярность карточек по типам
     const advertiserCards = await prisma.card.findMany({
-      where: { type: 'advertiser' },
-      orderBy: { clicks: 'desc' },
-      select: {
-        title: true,
-        clicks: true
-      }
+      where: {
+        type: 'advertiser'
+      },
+      orderBy: {
+        clicks: 'desc'
+      },
+      take: 5
     });
 
     const supplierCards = await prisma.card.findMany({
-      where: { type: 'supplier' },
-      orderBy: { clicks: 'desc' },
-      select: {
-        title: true,
-        clicks: true
-      }
+      where: {
+        type: 'supplier'
+      },
+      orderBy: {
+        clicks: 'desc'
+      },
+      take: 5
     });
 
     // Формируем ответ
@@ -117,7 +119,8 @@ export default async function handler(req, res) {
         distribution: ratings.map(r => ({
           rating: r.rating,
           count: r._count
-        }))
+        })),
+        average: ratings.reduce((acc, r) => acc + r.rating * r._count, 0) / ratings.reduce((acc, r) => acc + r._count, 0)
       },
       botErrors: {
         total: botErrors
@@ -131,11 +134,11 @@ export default async function handler(req, res) {
         lastAsked: q.lastAsked
       })),
       cardPopularity: {
-        advertiser: advertiserCards.map(c => ({
+        advertisers: advertiserCards.map(c => ({
           title: c.title,
           clicks: c.clicks
         })),
-        supplier: supplierCards.map(c => ({
+        suppliers: supplierCards.map(c => ({
           title: c.title,
           clicks: c.clicks
         }))
