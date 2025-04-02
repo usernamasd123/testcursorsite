@@ -198,6 +198,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
 
   const handleReaction = async (messageId, reaction) => {
     try {
+      console.log('Отправка реакции:', { messageId, reaction });
       const response = await fetch('/api/chat/reaction', {
         method: 'POST',
         headers: {
@@ -211,8 +212,13 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Ошибка при добавлении реакции:', errorData);
         throw new Error('Failed to add reaction');
       }
+
+      const data = await response.json();
+      console.log('Реакция успешно добавлена:', data);
 
       // Обновляем сообщение с новой реакцией
       setMessages(prevMessages =>

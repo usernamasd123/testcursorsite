@@ -1,4 +1,6 @@
-import { prisma } from '../../../lib/prisma';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -53,5 +55,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error adding reaction:', error);
     res.status(500).json({ message: 'Error adding reaction', error: error.message });
+  } finally {
+    await prisma.$disconnect();
   }
 } 
