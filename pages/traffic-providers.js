@@ -5,6 +5,7 @@ import ContactForm from '../components/ContactForm';
 export default function TrafficProviders() {
   const advertisers = [
     {
+      id: "adpro",
       title: "AdPro",
       description: "Крупный рекламодатель с высокими бюджетами",
       features: [
@@ -14,6 +15,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "admaster",
       title: "AdMaster",
       description: "Опытный рекламодатель с разнообразными офферами",
       features: [
@@ -23,6 +25,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adexpert",
       title: "AdExpert",
       description: "Специализированные рекламные кампании",
       features: [
@@ -32,6 +35,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adflow",
       title: "AdFlow",
       description: "Стабильный рекламодатель с регулярными кампаниями",
       features: [
@@ -41,6 +45,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adboost",
       title: "AdBoost",
       description: "Амбициозный рекламодатель с растущими бюджетами",
       features: [
@@ -50,6 +55,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adprime",
       title: "AdPrime",
       description: "Премиальный рекламодатель с высокими ставками",
       features: [
@@ -59,6 +65,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adsmart",
       title: "AdSmart",
       description: "Инновационный рекламодатель с умными кампаниями",
       features: [
@@ -68,6 +75,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adglobal",
       title: "AdGlobal",
       description: "Международный рекламодатель с глобальным охватом",
       features: [
@@ -77,6 +85,7 @@ export default function TrafficProviders() {
       ]
     },
     {
+      id: "adelite",
       title: "AdElite",
       description: "Элитный рекламодатель с премиальными офферами",
       features: [
@@ -108,8 +117,14 @@ export default function TrafficProviders() {
           
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши рекламодатели</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {advertisers.map((advertiser, index) => (
-              <Card key={index} {...advertiser} />
+            {advertisers.map((advertiser) => (
+              <Card 
+                key={advertiser.id}
+                id={advertiser.id}
+                title={advertiser.title}
+                description={advertiser.description}
+                features={advertiser.features}
+              />
             ))}
           </div>
         </div>
