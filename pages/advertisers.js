@@ -35,6 +35,7 @@ export default function Advertisers() {
 
   const trafficProviders = [
     {
+      id: "traffic-pro",
       title: "TrafficPro",
       description: "Профессиональный поставщик качественного трафика",
       features: [
@@ -44,6 +45,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-master",
       title: "TrafficMaster",
       description: "Опытный партнер с большим охватом",
       features: [
@@ -53,6 +55,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-expert",
       title: "TrafficExpert",
       description: "Специализированный трафик для вашего бизнеса",
       features: [
@@ -62,6 +65,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-flow",
       title: "TrafficFlow",
       description: "Стабильный поток целевого трафика",
       features: [
@@ -71,6 +75,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-boost",
       title: "TrafficBoost",
       description: "Мощный источник трафика для роста",
       features: [
@@ -80,6 +85,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-prime",
       title: "TrafficPrime",
       description: "Премиальный трафик для вашего бизнеса",
       features: [
@@ -89,6 +95,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-smart",
       title: "TrafficSmart",
       description: "Умный трафик с AI-оптимизацией",
       features: [
@@ -98,6 +105,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-global",
       title: "TrafficGlobal",
       description: "Международный трафик высокого качества",
       features: [
@@ -107,6 +115,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "traffic-elite",
       title: "TrafficElite",
       description: "Элитный трафик для премиум-клиентов",
       features: [
