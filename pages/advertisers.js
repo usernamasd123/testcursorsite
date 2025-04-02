@@ -1,40 +1,39 @@
+import { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Navbar from '../components/Navbar';
 import ContactForm from '../components/ContactForm';
 
 export default function Advertisers() {
-  const cards = [
-    {
-      id: "advertiser-wide",
-      title: "Широкий охват аудитории",
-      description: "Доступ к миллионам потенциальных клиентов",
-      features: [
-        "Глобальная аудитория",
-        "Таргетированная реклама",
-        "Высокий CTR"
-      ]
-    },
-    {
-      id: "advertiser-analytics",
-      title: "Аналитика и отчетность",
-      description: "Подробная статистика по всем кампаниям",
-      features: [
-        "Детальная аналитика",
-        "Автоматические отчеты",
-        "ROI-метрики"
-      ]
-    },
-    {
-      id: "advertiser-flexible",
-      title: "Гибкие условия",
-      description: "Настраиваемые параметры для вашего бизнеса",
-      features: [
-        "Гибкие бюджеты",
-        "Разные форматы рекламы",
-        "Индивидуальный подход"
-      ]
-    }
-  ];
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const response = await fetch('/api/cards?type=advertiser');
+        if (!response.ok) {
+          throw new Error('Failed to fetch cards');
+        }
+        const data = await response.json();
+        setCards(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCards();
+  }, []);
+
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка: {error}</div>;
+  }
 
   const trafficProviders = [
     {
@@ -138,18 +137,18 @@ export default function Advertisers() {
             Для рекламодателей
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Эффективные рекламные решения для вашего бизнеса
+            Эффективно продвигайте ваши продукты и услуги
           </p>
         </div>
 
         <div className="mt-10">
           <ContactForm 
-            title="Подать заявку на подключение"
+            title="Подать заявку на размещение рекламы"
             description="Заполните форму, и мы свяжемся с вами для обсуждения деталей сотрудничества"
           />
           
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Преимущества для рекламодателей</h2>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши рекламодатели</h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {cards.map((card) => (
               <Card 
                 key={card.id}

@@ -32,6 +32,7 @@ model Card {
   description String
   type        String
   clicks      Int      @default(0)
+  features    String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
