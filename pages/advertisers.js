@@ -5,6 +5,7 @@ import ContactForm from '../components/ContactForm';
 export default function Advertisers() {
   const cards = [
     {
+      id: "advertiser-wide",
       title: "Широкий охват аудитории",
       description: "Доступ к миллионам потенциальных клиентов",
       features: [
@@ -14,6 +15,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "advertiser-analytics",
       title: "Аналитика и отчетность",
       description: "Подробная статистика по всем кампаниям",
       features: [
@@ -23,6 +25,7 @@ export default function Advertisers() {
       ]
     },
     {
+      id: "advertiser-flexible",
       title: "Гибкие условия",
       description: "Настраиваемые параметры для вашего бизнеса",
       features: [
@@ -147,8 +150,8 @@ export default function Advertisers() {
           
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {trafficProviders.map((provider, index) => (
-              <Card key={index} {...provider} />
+            {trafficProviders.map((provider) => (
+              <Card key={provider.id} {...provider} />
             ))}
           </div>
         </div>
