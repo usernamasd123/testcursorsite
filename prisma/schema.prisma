@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -42,12 +45,12 @@ model MessageReaction {
 }
 
 model Card {
-  id          String   @id
+  id          String   @id @default(cuid())
   title       String
   description String
-  type        String
-  clicks      Int      @default(0)
+  type        String   // 'advertiser' или 'supplier'
   features    String[]
+  clicks      Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -74,4 +77,28 @@ model Dialogue {
   updatedAt DateTime @updatedAt
 
   @@index([cardId])
+}
+
+model Session {
+  id        String     @id
+  createdAt DateTime   @default(now())
+  reactions Reaction[]
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  messageId String
+  type      String   // 'like' или 'dislike'
+  session   Session  @relation(fields: [sessionId], references: [id])
+  sessionId String
+  createdAt DateTime @default(now())
+}
+
+model Stats {
+  id                Int      @id @default(1)
+  likes            Int      @default(0)
+  dislikes         Int      @default(0)
+  totalMessages    Int      @default(0)
+  totalDialogues   Int      @default(0)
+  updatedAt        DateTime @updatedAt
 }
