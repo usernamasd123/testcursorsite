@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import EmojiPicker from 'emoji-picker-react';
+import LoadingScreen from './LoadingScreen';
 
 export default function ChatDialog({ isOpen, onClose, cardData }) {
   const [messages, setMessages] = useState([]);
@@ -18,6 +19,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   const messagesEndRef = useRef(null);
   const [error, setError] = useState(null);
   const [dialogueId, setDialogueId] = useState(null);
+  const inputRef = useRef(null);
 
   // Предустановленные быстрые ответы
   const quickReplies = [
@@ -56,86 +58,46 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Автофокус на поле ввода при загрузке
+    inputRef.current?.focus();
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
-    await sendMessage(inputMessage);
-  };
+    if (!inputMessage.trim() || isLoading) return;
 
-  const sendMessage = async (content) => {
-    if (!content.trim() || !dialogueId) return;
+    const userMessage = inputMessage.trim();
+    setInputMessage(''); // Очищаем поле ввода сразу
+    
+    const newUserMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: userMessage
+    };
+
+    setMessages(prev => [...prev, newUserMessage]);
+    setIsLoading(true);
 
     try {
-      setIsLoading(true);
-      setError(null);
-
-      // Добавляем сообщение пользователя
-      const userMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-
-      // Сохраняем сообщение пользователя
-      const savedUserMessage = await fetch('/api/chat/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content,
-          role: 'user',
-          dialogueId,
-          cardId: cardData.id,
-          hour: new Date().getHours()
-        })
-      }).then(res => res.json());
-
-      // Получаем ответ от бота
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: content,
-          cardData,
-          dialogueId
-        })
+        body: JSON.stringify({ message: userMessage })
       });
 
-      if (!response.ok) {
-        throw new Error('Ошибка при получении ответа от бота');
-      }
+      if (!response.ok) throw new Error('Ошибка отправки сообщения');
 
       const data = await response.json();
-      
-      // Добавляем ответ бота
-      const botMessage = {
-        id: (Date.now() + 1).toString(),
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
         role: 'assistant',
-        content: data.message,
-        timestamp: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-
-      // Сохраняем сообщение бота
-      const savedBotMessage = await fetch('/api/chat/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: data.message,
-          role: 'assistant',
-          dialogueId,
-          cardId: cardData.id,
-          hour: new Date().getHours(),
-          isError: data.isError || false
-        })
-      }).then(res => res.json());
+        content: data.message
+      }]);
 
       // Проверяем, является ли сообщение заявкой
       if (data.message.toLowerCase().includes('заявка') || data.message.toLowerCase().includes('оставить заявку')) {
@@ -143,12 +105,16 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         setLeadType(cardData.type === 'advertiser' ? 'advertiser' : 'supplier');
       }
 
-    } catch (err) {
-      console.error('Error sending message:', err);
-      setError('Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.');
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [...prev, {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: 'Извините, произошла ошибка. Попробуйте позже.'
+      }]);
     } finally {
       setIsLoading(false);
-      setInputMessage('');
+      inputRef.current?.focus(); // Возвращаем фокус на поле ввода
     }
   };
 
@@ -198,41 +164,25 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
 
   const handleReaction = async (messageId, reaction) => {
     try {
-      console.log('Отправка реакции:', { messageId, reaction });
       const response = await fetch('/api/chat/reaction', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messageId,
           type: reaction === '👍' ? 'like' : 'dislike',
           sessionId: 'default-session'
-        }),
+        })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Ошибка при добавлении реакции:', errorData);
-        throw new Error('Failed to add reaction');
-      }
+      if (!response.ok) throw new Error('Ошибка сохранения реакции');
 
-      const data = await response.json();
-      console.log('Реакция успешно добавлена:', data);
-
-      // Обновляем сообщение с новой реакцией
-      setMessages(prevMessages =>
-        prevMessages.map(msg =>
-          msg.id === messageId
-            ? {
-                ...msg,
-                reactions: [...(msg.reactions || []), reaction],
-              }
-            : msg
-        )
-      );
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, reaction } 
+          : msg
+      ));
     } catch (error) {
-      console.error('Error adding reaction:', error);
+      console.error('Error saving reaction:', error);
     }
   };
 
@@ -270,7 +220,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
               {quickReplies.map((reply, index) => (
                 <button
                   key={index}
-                  onClick={() => sendMessage(reply)}
+                  onClick={() => setInputMessage(reply)}
                   className="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-gray-200 whitespace-nowrap"
                 >
                   {reply}
@@ -304,7 +254,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
                             key={reaction}
                             onClick={() => handleReaction(message.id, reaction)}
                             className={`text-xl ${
-                              message.reactions?.includes(reaction)
+                              message.reaction === reaction
                                 ? 'text-blue-500'
                                 : 'text-gray-400'
                             }`}
@@ -361,16 +311,18 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
                     </div>
                   )}
                   <input
+                    ref={inputRef}
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Введите ваше сообщение..."
                     className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isLoading}
                   />
                 </div>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !inputMessage.trim()}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   Отправить
