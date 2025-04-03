@@ -63,10 +63,12 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     const userMessage = inputMessage.trim();
     setInputMessage(''); // Очищаем поле ввода сразу
     
+    const tempUserMessageId = Date.now();
     const newUserMessage = {
-      id: Date.now(),
+      id: tempUserMessageId,
       role: 'user',
-      content: userMessage
+      content: userMessage,
+      isTemp: true
     };
 
     setMessages(prev => [...prev, newUserMessage]);
@@ -92,8 +94,15 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         throw new Error(data.error);
       }
 
+      // Обновляем сообщения, заменяя временные ID на реальные
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempUserMessageId
+          ? { ...msg, id: data.userMessageId, isTemp: false }
+          : msg
+      ));
+
       setMessages(prev => [...prev, {
-        id: Date.now() + 1,
+        id: data.assistantMessageId,
         role: 'assistant',
         content: data.message
       }]);
@@ -162,6 +171,13 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   };
 
   const handleReaction = async (messageId, reaction) => {
+    // Не позволяем добавлять реакции к временным сообщениям
+    const message = messages.find(m => m.id === messageId);
+    if (message?.isTemp) {
+      console.log('Cannot add reaction to temporary message');
+      return;
+    }
+
     try {
       console.log('Sending reaction:', { messageId, reaction });
       
