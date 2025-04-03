@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function AdminPage() {
   const [stats, setStats] = useState(null);
@@ -46,7 +47,7 @@ export default function AdminPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-4">Загрузка статистики...</div>;
+    return <LoadingScreen />;
   }
 
   if (error) {
