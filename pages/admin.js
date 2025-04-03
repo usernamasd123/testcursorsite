@@ -1,183 +1,189 @@
 import { useState, useEffect } from 'react';
-import LoadingScreen from '../components/LoadingScreen';
+import Head from 'next/head';
 
-export default function AdminPage() {
+export default function Admin() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   const fetchStats = async () => {
     try {
-      setLoading(true);
       const response = await fetch('/api/stats');
       if (!response.ok) {
         throw new Error('Failed to fetch stats');
       }
       const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
-      }
       setStats(data);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setError('Не удалось загрузить статистику');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    // Загружаем статистику при монтировании компонента
-    fetchStats();
-
-    // Добавляем обработчик события обновления статистики
-    const handleStatsUpdate = () => {
-      fetchStats();
-    };
-    window.addEventListener('statsUpdate', handleStatsUpdate);
-
-    // Устанавливаем интервал обновления каждые 30 секунд
-    const interval = setInterval(fetchStats, 30000);
-
-    // Очищаем обработчики при размонтировании компонента
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('statsUpdate', handleStatsUpdate);
-    };
-  }, []);
-
   if (loading) {
-    return <LoadingScreen />;
+    return (
+      <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+        <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+          <div className="text-center">
+            <div className="text-2xl font-semibold mb-4">Загрузка статистики...</div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-4 text-red-500">Ошибка: {error}</div>;
+    return (
+      <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+        <div className="relative py-3 sm:max-w-xl sm:mx-auto">
+          <div className="text-center text-red-500">
+            <div className="text-2xl font-semibold mb-4">{error}</div>
+            <button 
+              onClick={fetchStats}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Попробовать снова
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!stats) {
-    return <div className="p-4">Нет данных</div>;
+    return null;
   }
 
+  const hourLabels = Array.from({ length: 24 }, (_, i) => 
+    `${i.toString().padStart(2, '0')}:00`
+  );
+
+  const hourlyData = hourLabels.map((_, hour) => 
+    stats.messagesByHour[hour] || 0
+  );
+
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold mb-4">Статистика</h1>
+    <>
+      <Head>
+        <title>Админ панель - Статистика</title>
+      </Head>
 
-      {/* Базовые метрики */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Основные показатели</h2>
-          <ul className="space-y-2">
-            <li>Всего сообщений: {stats.basicMetrics.totalMessages}</li>
-            <li>Сообщений бота: {stats.basicMetrics.botMessages}</li>
-            <li>Уникальных пользователей: {stats.basicMetrics.uniqueUsers}</li>
-            <li>Среднее кол-во сообщений на пользователя: {stats.basicMetrics.avgMessagesPerUser.toFixed(2)}</li>
-          </ul>
-        </div>
+      <div className="min-h-screen bg-gray-100 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Статистика</h1>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Лиды и ошибки</h2>
-          <ul className="space-y-2">
-            <li>Всего лидов: {stats.leads.total}</li>
-            <li>Ошибок бота: {stats.botErrors.total}</li>
-            <li>Возвращающихся пользователей: {stats.returningRate.total}</li>
-          </ul>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Активность по часам</h2>
-          <div className="space-y-1">
-            {stats.hourlyActivity.map(hour => (
-              <div key={hour.hour} className="flex justify-between">
-                <span>{hour.hour}:00</span>
-                <span>{hour.count} сообщений</span>
+          {/* Основные метрики */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Всего сообщений
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                  {stats.totalMessages || 0}
+                </dd>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Рейтинги */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-2">Рейтинги</h2>
-        <div className="space-y-2">
-          {stats.ratings.distribution.map(rating => (
-            <div key={rating.rating} className="flex justify-between">
-              <span>{rating.rating || 'Без оценки'}</span>
-              <span>{rating.count}</span>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Популярные вопросы */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-2">Популярные вопросы</h2>
-        <div className="space-y-2">
-          {stats.popularQuestions.map((q, i) => (
-            <div key={i} className="flex justify-between items-center">
-              <div className="flex-1">
-                <span className="font-medium">{q.question}</span>
-                <span className="text-gray-500 ml-2">
-                  (Последний раз: {new Date(q.lastAsked).toLocaleString()})
-                </span>
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Сообщений за 24ч
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                  {stats.messagesLast24h || 0}
+                </dd>
               </div>
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {q.count} раз{q.count === 1 ? '' : 'а'}
-              </span>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Популярность карточек */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Популярность карточек</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Карточки рекламодателей */}
-          <div>
-            <h4 className="text-md font-medium text-gray-700 mb-2">Рекламодатели</h4>
-            <div className="space-y-2">
-              {stats.cardPopularity.advertisers.map((card, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{card.title}</span>
-                  <span className="text-sm font-medium text-gray-900">{card.clicks} кликов</span>
-                </div>
-              ))}
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Активных диалогов
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                  {stats.activeDialogues || 0}
+                </dd>
+              </div>
             </div>
-          </div>
-          {/* Карточки поставщиков */}
-          <div>
-            <h4 className="text-md font-medium text-gray-700 mb-2">Поставщики</h4>
-            <div className="space-y-2">
-              {stats.cardPopularity.suppliers.map((card, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{card.title}</span>
-                  <span className="text-sm font-medium text-gray-900">{card.clicks} кликов</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Статистика реакций */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Реакции на сообщения</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-500">{stats.reactions.likes}</div>
-            <div className="text-sm text-gray-500">Положительных</div>
+            <div className="bg-white overflow-hidden shadow rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <dt className="text-sm font-medium text-gray-500 truncate">
+                  Реакции
+                </dt>
+                <dd className="mt-1 text-3xl font-semibold text-gray-900">
+                  👍 {stats.likes || 0} / 👎 {stats.dislikes || 0}
+                </dd>
+              </div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-500">{stats.reactions.dislikes}</div>
-            <div className="text-sm text-gray-500">Отрицательных</div>
+
+          {/* График активности по часам */}
+          <div className="bg-white shadow rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Активность по часам
+            </h2>
+            <div className="h-64">
+              <div className="relative h-full">
+                <div className="absolute bottom-0 left-0 right-0 h-full flex items-end">
+                  {hourlyData.map((count, index) => {
+                    const height = count ? (count / Math.max(...hourlyData)) * 100 : 0;
+                    return (
+                      <div
+                        key={index}
+                        className="flex-1 mx-1"
+                        style={{ height: '100%' }}
+                      >
+                        <div
+                          className="bg-blue-500 rounded-t"
+                          style={{
+                            height: `${height}%`,
+                            transition: 'height 0.3s ease'
+                          }}
+                          title={`${count} сообщений`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex justify-between mt-4 text-sm text-gray-600">
+                {hourLabels.filter((_, i) => i % 3 === 0).map(label => (
+                  <div key={label}>{label}</div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="text-center col-span-2">
-            <div className="text-2xl font-bold text-blue-500">{stats.reactions.ratio}%</div>
-            <div className="text-sm text-gray-500">Положительных реакций</div>
-          </div>
+
+          {/* Топ карточек */}
+          {stats.topCards && stats.topCards.length > 0 && (
+            <div className="bg-white shadow rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Топ карточек по кликам
+              </h2>
+              <div className="space-y-4">
+                {stats.topCards.map((card, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between border-b pb-2 last:border-0"
+                  >
+                    <span className="text-gray-900">{card.title}</span>
+                    <span className="text-gray-500">{card.clicks} кликов</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 } 
