@@ -4,17 +4,7 @@ import ChatDialog from './ChatDialog';
 export default function Card({ id, title, description, features, type, budget, sources, goals, advantages }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  console.log('Рендер карточки:', { id, title, description, features });
-
   const handleContactClick = async () => {
-    console.log('Нажата кнопка "Связаться" для карточки:', id);
-    console.log('Полные данные карточки:', { id, title, description, features });
-
-    if (!id) {
-      console.error('Ошибка: ID карточки не определен');
-      return;
-    }
-
     try {
       const response = await fetch('/api/card/click', {
         method: 'POST',
@@ -24,15 +14,10 @@ export default function Card({ id, title, description, features, type, budget, s
         body: JSON.stringify({ cardId: id }),
       });
 
-      console.log('Ответ от API:', response.status);
-      const data = await response.json();
-      console.log('Данные от API:', data);
-
       if (!response.ok) {
         throw new Error('Failed to track click');
       }
 
-      // Открываем чат после успешного отслеживания клика
       setIsChatOpen(true);
     } catch (error) {
       console.error('Ошибка при обработке клика:', error);
@@ -42,6 +27,7 @@ export default function Card({ id, title, description, features, type, budget, s
   return (
     <>
       <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
+        {/* Заголовок и описание */}
         <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
         <p className="text-gray-600 mb-6">{description}</p>
         
@@ -73,7 +59,7 @@ export default function Card({ id, title, description, features, type, budget, s
         {/* Цели для рекламодателей */}
         {type === 'advertiser' && goals && goals.length > 0 && (
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Хотят получить</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Хочет получить</h3>
             <ul className="space-y-2">
               {goals.map((goal, index) => (
                 <li key={index} className="flex items-center text-gray-600">
