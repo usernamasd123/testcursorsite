@@ -11,94 +11,36 @@ datasource db {
 }
 
 model Message {
-  id          String   @id @default(cuid())
-  content     String
-  role        String
-  userId      String?
-  cardId      String?
-  hour        Int      @default(0)
-  isError     Boolean  @default(false)
-  isLead      Boolean  @default(false)
-  leadType    String?
-  rating      String?
-  sessionId   String
-  session     UserSession @relation(fields: [sessionId], references: [id])
-  reactions   MessageReaction[]
-  timestamp   DateTime @default(now())
-
-  @@index([userId])
-  @@index([cardId])
-  @@index([hour])
-}
-
-model MessageReaction {
-  id          String   @id @default(cuid())
-  messageId   String
-  message     Message  @relation(fields: [messageId], references: [id])
-  sessionId   String
-  session     UserSession @relation(fields: [sessionId], references: [id])
-  type        String   // 'like', 'dislike'
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([messageId, sessionId])
-}
-
-model Card {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  type        String   // 'advertiser' или 'supplier'
-  features    String[]
-  clicks      Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String     @id @default(cuid())
+  content   String
+  role      String
+  createdAt DateTime   @default(now())
+  reactions Reaction[]
 }
 
 model UserSession {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  messageCount    Int      @default(0)
-  isReturning     Boolean  @default(false)
-  lastMessageTime DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  messageTimes    DateTime[]
-  messages        Message[]
-  reactions       MessageReaction[]
-}
-
-model Dialogue {
-  id        String   @id @default(cuid())
-  cardId    String
-  startTime DateTime @default(now())
-  status    String   @default("active")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([cardId])
-}
-
-model Session {
   id        String     @id
   createdAt DateTime   @default(now())
   reactions Reaction[]
 }
 
 model Reaction {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
+  type      String
+  message   Message     @relation(fields: [messageId], references: [id])
   messageId String
-  type      String   // 'like' или 'dislike'
-  session   Session  @relation(fields: [sessionId], references: [id])
+  session   UserSession @relation(fields: [sessionId], references: [id])
   sessionId String
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
+
+  @@unique([messageId, sessionId])
 }
 
 model Stats {
-  id                Int      @id @default(1)
-  likes            Int      @default(0)
-  dislikes         Int      @default(0)
-  totalMessages    Int      @default(0)
-  totalDialogues   Int      @default(0)
-  updatedAt        DateTime @updatedAt
+  id             Int      @id @default(1)
+  likes          Int      @default(0)
+  dislikes       Int      @default(0)
+  totalMessages  Int      @default(0)
+  totalDialogues Int      @default(0)
+  updatedAt      DateTime @updatedAt
 }

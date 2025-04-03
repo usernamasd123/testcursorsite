@@ -7,33 +7,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { messageId, type, sessionId } = req.body;
+
+  if (!messageId || !type || !sessionId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   try {
-    const { messageId, type, sessionId } = req.body;
-
-    if (!messageId || !type || !sessionId) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Проверяем существование сессии
+    // Проверяем существование сессии или создаем новую
     let session = await prisma.userSession.findUnique({
-      where: { userId: sessionId }
+      where: { id: sessionId }
     });
 
-    // Если сессия не существует, создаем новую
     if (!session) {
       session = await prisma.userSession.create({
-        data: {
-          userId: sessionId,
-          messageCount: 0,
-          isReturning: false,
-          lastMessageTime: new Date(),
-          messageTimes: []
-        }
+        data: { id: sessionId }
       });
     }
 
     // Проверяем существование сообщения
-    const message = await prisma.message.findFirst({
+    const message = await prisma.message.findUnique({
       where: { id: messageId }
     });
 
@@ -41,51 +34,50 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Message not found' });
     }
 
-    // Проверяем существование реакции
-    const existingReaction = await prisma.messageReaction.findFirst({
+    // Проверяем существующую реакцию
+    const existingReaction = await prisma.reaction.findFirst({
       where: {
         messageId: messageId,
-        sessionId: session.id
+        sessionId: sessionId
       }
     });
 
     let reaction;
-
     if (existingReaction) {
       // Обновляем существующую реакцию
-      reaction = await prisma.messageReaction.update({
+      reaction = await prisma.reaction.update({
         where: { id: existingReaction.id },
         data: { type }
       });
     } else {
       // Создаем новую реакцию
-      reaction = await prisma.messageReaction.create({
+      reaction = await prisma.reaction.create({
         data: {
-          messageId,
           type,
-          sessionId: session.id
+          messageId,
+          sessionId
         }
       });
 
-      // Обновляем статистику только для новых реакций
-      await prisma.stats.upsert({
+      // Обновляем статистику
+      await prisma.stats.update({
         where: { id: 1 },
-        create: {
-          id: 1,
-          [type === 'like' ? 'likes' : 'dislikes']: 1
-        },
-        update: {
+        data: {
           [type === 'like' ? 'likes' : 'dislikes']: {
             increment: 1
           }
+        },
+        create: {
+          id: 1,
+          [type === 'like' ? 'likes' : 'dislikes']: 1
         }
       });
     }
 
-    return res.status(200).json(reaction);
+    res.status(200).json(reaction);
   } catch (error) {
-    console.error('Error saving reaction:', error);
-    return res.status(500).json({ error: 'Failed to save reaction' });
+    console.error('Error handling reaction:', error);
+    res.status(500).json({ error: 'Internal server error' });
   } finally {
     await prisma.$disconnect();
   }
