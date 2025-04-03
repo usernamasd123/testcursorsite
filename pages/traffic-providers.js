@@ -12,7 +12,7 @@ export default function TrafficProviders() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        const response = await fetch('/api/cards?type=supplier');
+        const response = await fetch('/api/cards?type=advertiser');
         if (!response.ok) {
           throw new Error('Failed to fetch cards');
         }
@@ -55,7 +55,7 @@ export default function TrafficProviders() {
             description="Заполните форму, и мы свяжемся с вами для обсуждения деталей сотрудничества"
           />
           
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши поставщики трафика</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Наши рекламодатели</h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             {cards.map((card) => (
               <Card 
