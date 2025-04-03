@@ -8,23 +8,51 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Базовые метрики
-    const totalMessages = await prisma.message.count();
-    const botMessages = await prisma.message.count({
-      where: { role: 'assistant' }
+    // Получаем общую статистику
+    const stats = await prisma.stats.findFirst({
+      where: { id: 1 }
     });
-    const uniqueUsers = await prisma.message.groupBy({
-      by: ['userId'],
+
+    // Если статистики нет, создаем начальную
+    if (!stats) {
+      const newStats = await prisma.stats.create({
+        data: {
+          id: 1,
+          likes: 0,
+          dislikes: 0,
+          totalMessages: 0,
+          totalDialogues: 0
+        }
+      });
+      return res.status(200).json(newStats);
+    }
+
+    // Получаем количество сообщений за последние 24 часа
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const messagesLast24h = await prisma.message.count({
+      where: {
+        createdAt: {
+          gte: last24Hours
+        }
+      }
+    });
+
+    // Получаем количество активных диалогов (за последние 24 часа)
+    const activeDialogues = await prisma.message.groupBy({
+      by: ['cardId'],
+      where: {
+        createdAt: {
+          gte: last24Hours
+        },
+        cardId: {
+          not: null
+        }
+      },
       _count: true
-    }).then(groups => groups.length);
-
-    // Лиды
-    const totalLeads = await prisma.message.count({
-      where: { isLead: true }
     });
 
-    // Активность по часам
-    const hourlyActivity = await prisma.message.groupBy({
+    // Получаем статистику по часам
+    const messagesByHour = await prisma.message.groupBy({
       by: ['hour'],
       _count: true,
       orderBy: {
@@ -32,154 +60,35 @@ export default async function handler(req, res) {
       }
     });
 
-    // Рейтинги
-    const ratings = await prisma.message.groupBy({
-      by: ['rating'],
-      _count: true,
-      where: {
-        rating: { not: null }
-      }
-    });
-
-    // Ошибки бота
-    const botErrors = await prisma.message.count({
-      where: { isError: true }
-    });
-
-    // Возвращающиеся пользователи
-    const returningUsers = await prisma.userSession.count({
-      where: { isReturning: true }
-    });
-
-    // Популярные вопросы с подсчетом повторений
-    const allUserMessages = await prisma.message.findMany({
-      where: { role: 'user' },
+    // Получаем топ карточек по кликам
+    const topCards = await prisma.card.findMany({
+      orderBy: {
+        clicks: 'desc'
+      },
+      take: 5,
       select: {
-        content: true,
-        timestamp: true
+        title: true,
+        clicks: true
       }
     });
 
-    // Подсчитываем количество повторений каждого вопроса
-    const questionCounts = allUserMessages.reduce((acc, msg) => {
-      acc[msg.content] = (acc[msg.content] || 0) + 1;
-      return acc;
-    }, {});
-
-    // Сортируем вопросы по количеству повторений
-    const popularQuestions = Object.entries(questionCounts)
-      .map(([content, count]) => ({
-        content,
-        count,
-        lastAsked: allUserMessages
-          .filter(m => m.content === content)
-          .sort((a, b) => b.timestamp - a.timestamp)[0]
-          .timestamp
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    // Получаем популярность карточек по типам
-    const advertiserCards = await prisma.card.findMany({
-      where: {
-        type: 'advertiser'
-      },
-      orderBy: {
-        clicks: 'desc'
-      },
-      take: 5
-    });
-
-    const supplierCards = await prisma.card.findMany({
-      where: {
-        type: 'supplier'
-      },
-      orderBy: {
-        clicks: 'desc'
-      },
-      take: 5
-    });
-
-    // Получаем статистику реакций
-    const reactions = await prisma.messageReaction.groupBy({
-      by: ['type'],
-      _count: {
-        _all: true
-      }
-    });
-
-    const reactionStats = {
-      likes: 0,
-      dislikes: 0,
-      total: 0
+    // Формируем полный ответ
+    const response = {
+      ...stats,
+      messagesLast24h,
+      activeDialogues: activeDialogues.length,
+      messagesByHour: messagesByHour.reduce((acc, item) => {
+        acc[item.hour] = item._count;
+        return acc;
+      }, {}),
+      topCards
     };
 
-    reactions.forEach(reaction => {
-      if (reaction.type === 'like') {
-        reactionStats.likes = reaction._count._all;
-      } else if (reaction.type === 'dislike') {
-        reactionStats.dislikes = reaction._count._all;
-      }
-      reactionStats.total += reaction._count._all;
-    });
-
-    // Формируем ответ
-    const stats = {
-      basicMetrics: {
-        totalMessages,
-        botMessages,
-        uniqueUsers,
-        avgMessagesPerUser: uniqueUsers > 0 ? totalMessages / uniqueUsers : 0
-      },
-      leads: {
-        total: totalLeads
-      },
-      hourlyActivity: hourlyActivity.map(h => ({
-        hour: h.hour,
-        count: h._count
-      })),
-      ratings: {
-        distribution: ratings.map(r => ({
-          rating: r.rating,
-          count: r._count
-        })),
-        average: ratings.reduce((acc, r) => acc + r.rating * r._count, 0) / ratings.reduce((acc, r) => acc + r._count, 0)
-      },
-      botErrors: {
-        total: botErrors
-      },
-      returningRate: {
-        total: returningUsers
-      },
-      popularQuestions: popularQuestions.map(q => ({
-        question: q.content,
-        count: q.count,
-        lastAsked: q.lastAsked
-      })),
-      cardPopularity: {
-        advertisers: advertiserCards.map(c => ({
-          title: c.title,
-          clicks: c.clicks
-        })),
-        suppliers: supplierCards.map(c => ({
-          title: c.title,
-          clicks: c.clicks
-        }))
-      },
-      reactions: {
-        likes: reactionStats.likes,
-        dislikes: reactionStats.dislikes,
-        total: reactionStats.total,
-        ratio: reactionStats.total > 0 ? (reactionStats.likes / reactionStats.total * 100).toFixed(1) : 0
-      }
-    };
-
-    res.status(200).json(stats);
+    res.status(200).json(response);
   } catch (error) {
-    console.error('Error in stats API:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message 
-    });
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  } finally {
+    await prisma.$disconnect();
   }
 } 
