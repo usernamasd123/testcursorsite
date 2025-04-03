@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import Navbar from '../components/Navbar';
 import ContactForm from '../components/ContactForm';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function TrafficProviders() {
   const [cards, setCards] = useState([]);
@@ -28,7 +29,7 @@ export default function TrafficProviders() {
   }, []);
 
   if (loading) {
-    return <div>Загрузка...</div>;
+    return <LoadingScreen />;
   }
 
   if (error) {
