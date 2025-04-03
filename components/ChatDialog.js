@@ -29,29 +29,17 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
     "Какие гарантии вы предоставляете?"
   ];
 
-  // Создаем новый диалог при открытии чата
+  // Создаем новый диалог и отправляем приветственное сообщение при открытии чата
   useEffect(() => {
-    if (isOpen && !dialogueId) {
-      createDialogue();
+    if (isOpen) {
+      const welcomeMessage = {
+        id: Date.now(),
+        role: 'assistant',
+        content: `Здравствуйте! Я виртуальный помощник компании "${cardData?.title}". Как я могу помочь вам?`
+      };
+      setMessages([welcomeMessage]);
     }
-  }, [isOpen]);
-
-  const createDialogue = async () => {
-    try {
-      const response = await fetch('/api/chat/dialogue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cardId: cardData.id
-        })
-      });
-      const data = await response.json();
-      setDialogueId(data.id);
-    } catch (err) {
-      console.error('Error creating dialogue:', err);
-      setError('Ошибка при создании диалога');
-    }
-  };
+  }, [isOpen, cardData]);
 
   // Автопрокрутка
   useEffect(() => {
@@ -87,12 +75,22 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
+        body: JSON.stringify({ 
+          message: userMessage,
+          cardData: cardData
+        })
       });
 
-      if (!response.ok) throw new Error('Ошибка отправки сообщения');
+      if (!response.ok) {
+        throw new Error('Ошибка отправки сообщения');
+      }
 
       const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       setMessages(prev => [...prev, {
         id: Date.now() + 1,
         role: 'assistant',
@@ -114,7 +112,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       }]);
     } finally {
       setIsLoading(false);
-      inputRef.current?.focus(); // Возвращаем фокус на поле ввода
+      inputRef.current?.focus();
     }
   };
 
@@ -168,13 +166,16 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messageId,
+          messageId: messageId.toString(),
           type: reaction === '👍' ? 'like' : 'dislike',
           sessionId: 'default-session'
         })
       });
 
-      if (!response.ok) throw new Error('Ошибка сохранения реакции');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка сохранения реакции');
+      }
 
       setMessages(prev => prev.map(msg => 
         msg.id === messageId 
