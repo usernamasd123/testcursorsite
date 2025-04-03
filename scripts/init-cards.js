@@ -2,137 +2,94 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const trafficProviders = [
+const suppliers = [
   {
-    id: "traffic-pro",
     title: "TrafficPro",
-    description: "Профессиональный поставщик качественного трафика",
+    description: "Профессиональный поставщик качественного трафика с многолетним опытом",
     type: "supplier",
-    clicks: 0,
-    features: [
-      "Высокое качество трафика",
-      "Быстрая обработка заявок",
-      "Гибкие условия"
-    ]
+    features: ["Высокое качество трафика", "Быстрая обработка заявок", "Гибкие условия"],
+    budget: "от 100 000 ₽",
+    sources: ["Facebook", "Instagram", "Google Ads", "Яндекс.Директ"],
+    advantages: ["Собственная система антифрода", "Персональный менеджер", "Еженедельные выплаты"],
+    clicks: 0
   },
   {
-    id: "traffic-master",
     title: "TrafficMaster",
-    description: "Опытный партнер с большим охватом",
+    description: "Надежный поставщик трафика для масштабирования вашего бизнеса",
     type: "supplier",
-    clicks: 0,
-    features: [
-      "Большой охват аудитории",
-      "Стабильные объемы",
-      "Подробная аналитика"
-    ]
+    features: ["Таргетированный трафик", "Масштабируемые объемы", "Прозрачная статистика"],
+    budget: "от 150 000 ₽",
+    sources: ["TikTok", "YouTube", "Telegram", "VK"],
+    advantages: ["Уникальные рекламные форматы", "API интеграция", "Гарантия качества"],
+    clicks: 0
   },
   {
-    id: "traffic-expert",
     title: "TrafficExpert",
-    description: "Специализированный трафик для вашего бизнеса",
+    description: "Эксперты в области мобильного и веб-трафика",
     type: "supplier",
-    clicks: 0,
-    features: [
-      "Целевой трафик",
-      "Оптимизация под задачи",
-      "Техническая поддержка"
-    ]
+    features: ["Мобильный трафик", "Веб-трафик", "Push-уведомления"],
+    budget: "от 200 000 ₽",
+    sources: ["Mobile Apps", "Push Traffic", "Email Marketing", "Native Ads"],
+    advantages: ["Собственная рекламная сеть", "Таргетинг по GEO", "Оптимизация ROI"],
+    clicks: 0
+  }
+];
+
+const advertisers = [
+  {
+    title: "AdPro Marketing",
+    description: "Крупное маркетинговое агентство с международным присутствием",
+    type: "advertiser",
+    features: ["Международные кампании", "Мультиязычные проекты", "Высокая конверсия"],
+    budget: "500 000 ₽ - 1 000 000 ₽",
+    goals: ["Увеличение продаж", "Масштабирование на новые рынки", "Повышение узнаваемости бренда"],
+    advantages: ["Быстрый запуск кампаний", "Оплата за результат", "Премиальная поддержка"],
+    clicks: 0
   },
   {
-    id: "traffic-flow",
-    title: "TrafficFlow",
-    description: "Стабильный поток целевого трафика",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "Стабильные объемы",
-      "Регулярные выплаты",
-      "Прозрачная статистика"
-    ]
+    title: "Digital Solutions",
+    description: "Инновационное агентство цифрового маркетинга",
+    type: "advertiser",
+    features: ["Digital-стратегии", "Performance-маркетинг", "Аналитика"],
+    budget: "300 000 ₽ - 600 000 ₽",
+    goals: ["Лиды для B2B", "Автоматизация маркетинга", "Повышение ROI"],
+    advantages: ["AI-оптимизация кампаний", "Прозрачная отчетность", "Гибкие условия"],
+    clicks: 0
   },
   {
-    id: "traffic-boost",
-    title: "TrafficBoost",
-    description: "Мощный источник трафика для роста",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "Быстрый старт",
-      "Масштабируемость",
-      "Оптимизация ROI"
-    ]
-  },
-  {
-    id: "traffic-prime",
-    title: "TrafficPrime",
-    description: "Премиальный трафик для вашего бизнеса",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "Премиум-качество",
-      "VIP-поддержка",
-      "Эксклюзивные условия"
-    ]
-  },
-  {
-    id: "traffic-smart",
-    title: "TrafficSmart",
-    description: "Умный трафик с AI-оптимизацией",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "AI-оптимизация",
-      "Автоматизация",
-      "Умная аналитика"
-    ]
-  },
-  {
-    id: "traffic-global",
-    title: "TrafficGlobal",
-    description: "Международный трафик высокого качества",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "Мультигео",
-      "Мультиязычность",
-      "Глобальная поддержка"
-    ]
-  },
-  {
-    id: "traffic-elite",
-    title: "TrafficElite",
-    description: "Элитный трафик для премиум-клиентов",
-    type: "supplier",
-    clicks: 0,
-    features: [
-      "Премиум-трафик",
-      "VIP-поддержка",
-      "Приоритетная обработка"
-    ]
+    title: "Growth Hackers",
+    description: "Агентство роста с фокусом на быстрые результаты",
+    type: "advertiser",
+    features: ["Growth Hacking", "A/B тестирование", "Быстрое масштабирование"],
+    budget: "400 000 ₽ - 800 000 ₽",
+    goals: ["Быстрый рост", "Оптимизация воронки", "Увеличение LTV"],
+    advantages: ["Инновационные подходы", "Быстрые итерации", "Фокус на метриках"],
+    clicks: 0
   }
 ];
 
 async function initCards() {
   try {
-    console.log('Начинаем инициализацию карточек...');
+    // Удаляем существующие карточки
+    await prisma.card.deleteMany();
 
-    // Удаляем существующие карточки поставщиков
-    await prisma.card.deleteMany({
-      where: { type: 'supplier' }
-    });
-
-    // Создаем новые карточки
-    for (const card of trafficProviders) {
-      const createdCard = await prisma.card.create({
-        data: card
+    // Создаем карточки поставщиков
+    for (const supplier of suppliers) {
+      await prisma.card.create({
+        data: supplier
       });
-      console.log('Создана карточка:', createdCard.title);
     }
 
-    console.log('Инициализация карточек завершена');
+    // Создаем карточки рекламодателей
+    for (const advertiser of advertisers) {
+      await prisma.card.create({
+        data: advertiser
+      });
+    }
+
+    console.log('Карточки успешно созданы');
   } catch (error) {
-    console.error('Ошибка при инициализации карточек:', error);
+    console.error('Ошибка при создании карточек:', error);
   } finally {
     await prisma.$disconnect();
   }
