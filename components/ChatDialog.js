@@ -35,7 +35,8 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       const welcomeMessage = {
         id: Date.now(),
         role: 'assistant',
-        content: `Здравствуйте! Я виртуальный помощник компании "${cardData?.title}". Как я могу помочь вам?`
+        content: `Здравствуйте! Я виртуальный помощник компании "${cardData?.title}". Как я могу помочь вам?`,
+        isWelcome: true
       };
       setMessages([welcomeMessage]);
     }
@@ -163,6 +164,13 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
   const handleReaction = async (messageId, reaction) => {
     try {
       console.log('Sending reaction:', { messageId, reaction });
+      
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, reaction: reaction } 
+          : msg
+      ));
+
       const response = await fetch('/api/chat/reaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,21 +182,20 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || 'Failed to save reaction');
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, reaction: undefined } 
+            : msg
+        ));
+        throw new Error('Failed to save reaction');
       }
 
       const data = await response.json();
       console.log('Reaction saved:', data);
-
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId 
-          ? { ...msg, reaction: reaction } 
-          : msg
-      ));
     } catch (error) {
       console.error('Error saving reaction:', error);
+      setError('Не удалось сохранить реакцию. Пожалуйста, попробуйте позже.');
+      setTimeout(() => setError(null), 3000);
     }
   };
 
@@ -253,7 +260,7 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
                         __html: formatMessage(message.content) 
                       }}
                     />
-                    {message.role === 'assistant' && (
+                    {message.role === 'assistant' && !message.isWelcome && (
                       <div className="mt-2 flex items-center space-x-2">
                         {Object.values(reactions).map((reaction) => (
                           <button
@@ -336,6 +343,11 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
               </div>
             </form>
           </>
+        )}
+        {error && (
+          <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg animate-fade-in">
+            {error}
+          </div>
         )}
       </div>
     </div>
