@@ -54,17 +54,59 @@ export default async function handler(req, res) {
     // Получаем статистику по часам
     const messagesByHour = await prisma.message.groupBy({
       by: ['hour'],
-      _count: true,
+      _count: true
+    });
+
+    // Получаем популярные вопросы
+    const userMessages = await prisma.message.findMany({
+      where: { 
+        role: 'user',
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // За последнюю неделю
+        }
+      },
+      select: {
+        content: true,
+        createdAt: true
+      },
       orderBy: {
-        hour: 'asc'
+        createdAt: 'desc'
       }
     });
 
-    // Получаем топ карточек по кликам
-    const topCards = await prisma.card.findMany({
-      orderBy: {
-        clicks: 'desc'
-      },
+    // Подсчитываем количество повторений каждого вопроса
+    const questionCounts = {};
+    const questionLastAsked = {};
+    userMessages.forEach(msg => {
+      questionCounts[msg.content] = (questionCounts[msg.content] || 0) + 1;
+      if (!questionLastAsked[msg.content] || msg.createdAt > questionLastAsked[msg.content]) {
+        questionLastAsked[msg.content] = msg.createdAt;
+      }
+    });
+
+    const popularQuestions = Object.entries(questionCounts)
+      .map(([question, count]) => ({
+        question,
+        count,
+        lastAsked: questionLastAsked[question]
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Получаем популярность карточек по типам
+    const advertisers = await prisma.card.findMany({
+      where: { type: 'advertiser' },
+      orderBy: { clicks: 'desc' },
+      take: 5,
+      select: {
+        title: true,
+        clicks: true
+      }
+    });
+
+    const suppliers = await prisma.card.findMany({
+      where: { type: 'supplier' },
+      orderBy: { clicks: 'desc' },
       take: 5,
       select: {
         title: true,
@@ -81,7 +123,11 @@ export default async function handler(req, res) {
         acc[item.hour] = item._count;
         return acc;
       }, {}),
-      topCards
+      popularQuestions,
+      cardPopularity: {
+        advertisers,
+        suppliers
+      }
     };
 
     res.status(200).json(response);

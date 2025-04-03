@@ -8,6 +8,9 @@ export default function Admin() {
 
   useEffect(() => {
     fetchStats();
+    // Обновляем статистику каждые 30 секунд
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
@@ -63,10 +66,6 @@ export default function Admin() {
 
   const hourLabels = Array.from({ length: 24 }, (_, i) => 
     `${i.toString().padStart(2, '0')}:00`
-  );
-
-  const hourlyData = hourLabels.map((_, hour) => 
-    stats.messagesByHour[hour] || 0
   );
 
   return (
@@ -126,6 +125,33 @@ export default function Admin() {
             </div>
           </div>
 
+          {/* Популярные вопросы */}
+          {stats.popularQuestions && stats.popularQuestions.length > 0 && (
+            <div className="bg-white shadow rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Популярные вопросы
+              </h2>
+              <div className="space-y-4">
+                {stats.popularQuestions.map((q, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between border-b pb-2 last:border-0"
+                  >
+                    <div className="flex-1">
+                      <div className="text-gray-900">{q.question}</div>
+                      <div className="text-sm text-gray-500">
+                        Последний раз: {new Date(q.lastAsked).toLocaleString()}
+                      </div>
+                    </div>
+                    <span className="ml-4 px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                      {q.count} раз
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* График активности по часам */}
           <div className="bg-white shadow rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -134,11 +160,13 @@ export default function Admin() {
             <div className="h-64">
               <div className="relative h-full">
                 <div className="absolute bottom-0 left-0 right-0 h-full flex items-end">
-                  {hourlyData.map((count, index) => {
-                    const height = count ? (count / Math.max(...hourlyData)) * 100 : 0;
+                  {hourLabels.map((_, hour) => {
+                    const count = stats.messagesByHour?.[hour] || 0;
+                    const maxCount = Math.max(...Object.values(stats.messagesByHour || {}));
+                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
                     return (
                       <div
-                        key={index}
+                        key={hour}
                         className="flex-1 mx-1"
                         style={{ height: '100%' }}
                       >
@@ -163,25 +191,48 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Топ карточек */}
-          {stats.topCards && stats.topCards.length > 0 && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Топ карточек по кликам
-              </h2>
-              <div className="space-y-4">
-                {stats.topCards.map((card, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between border-b pb-2 last:border-0"
-                  >
-                    <span className="text-gray-900">{card.title}</span>
-                    <span className="text-gray-500">{card.clicks} кликов</span>
-                  </div>
-                ))}
+          {/* Карточки по типам */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Рекламодатели */}
+            {stats.cardPopularity?.advertisers && (
+              <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Популярные рекламодатели
+                </h2>
+                <div className="space-y-4">
+                  {stats.cardPopularity.advertisers.map((card, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between border-b pb-2 last:border-0"
+                    >
+                      <span className="text-gray-900">{card.title}</span>
+                      <span className="text-gray-500">{card.clicks} кликов</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Поставщики */}
+            {stats.cardPopularity?.suppliers && (
+              <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Популярные поставщики
+                </h2>
+                <div className="space-y-4">
+                  {stats.cardPopularity.suppliers.map((card, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between border-b pb-2 last:border-0"
+                    >
+                      <span className="text-gray-900">{card.title}</span>
+                      <span className="text-gray-500">{card.clicks} кликов</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

@@ -14,17 +14,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Проверяем существование сессии или создаем новую
-    let session = await prisma.userSession.findUnique({
-      where: { id: sessionId }
-    });
-
-    if (!session) {
-      session = await prisma.userSession.create({
-        data: { id: sessionId }
-      });
-    }
-
     // Проверяем существование сообщения
     const message = await prisma.message.findUnique({
       where: { id: messageId }
@@ -44,6 +33,21 @@ export default async function handler(req, res) {
 
     let reaction;
     if (existingReaction) {
+      // Если тип реакции изменился, обновляем статистику
+      if (existingReaction.type !== type) {
+        await prisma.stats.update({
+          where: { id: 1 },
+          data: {
+            [existingReaction.type === 'like' ? 'likes' : 'dislikes']: {
+              decrement: 1
+            },
+            [type === 'like' ? 'likes' : 'dislikes']: {
+              increment: 1
+            }
+          }
+        });
+      }
+
       // Обновляем существующую реакцию
       reaction = await prisma.reaction.update({
         where: { id: existingReaction.id },
@@ -59,17 +63,17 @@ export default async function handler(req, res) {
         }
       });
 
-      // Обновляем статистику
-      await prisma.stats.update({
+      // Обновляем статистику для новой реакции
+      await prisma.stats.upsert({
         where: { id: 1 },
-        data: {
-          [type === 'like' ? 'likes' : 'dislikes']: {
-            increment: 1
-          }
-        },
         create: {
           id: 1,
           [type === 'like' ? 'likes' : 'dislikes']: 1
+        },
+        update: {
+          [type === 'like' ? 'likes' : 'dislikes']: {
+            increment: 1
+          }
         }
       });
     }
