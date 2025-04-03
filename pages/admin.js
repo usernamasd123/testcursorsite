@@ -185,7 +185,7 @@ export default function Admin() {
               </div>
               <div className="flex justify-between mt-4 text-xs text-gray-600 overflow-x-hidden">
                 {hourLabels.filter((_, i) => i % 3 === 0).map(label => (
-                  <div key={label} className="transform -rotate-45 origin-top-left translate-y-3">
+                  <div key={label} className="text-center">
                     {label}
                   </div>
                 ))}
