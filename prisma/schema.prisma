@@ -16,10 +16,12 @@ model Message {
   role      String
   cardId    String?
   card      Card?      @relation(fields: [cardId], references: [id])
+  hour      Int        @default(0)
   createdAt DateTime   @default(now())
   reactions Reaction[]
 
   @@index([cardId])
+  @@index([hour])
 }
 
 model UserSession {
