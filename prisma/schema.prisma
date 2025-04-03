@@ -48,6 +48,10 @@ model Card {
   description String
   type        String    // 'advertiser' или 'supplier'
   features    String[]
+  budget      String?   // Для рекламодателей: бюджет на месяц, для поставщиков: минимальный бюджет
+  sources     String[]  // Для поставщиков: источники трафика
+  goals       String[]  // Для рекламодателей: что хотят получить
+  advantages  String[]  // Преимущества
   clicks      Int       @default(0)
   messages    Message[]
   createdAt   DateTime  @default(now())
