@@ -48,7 +48,11 @@ model Card {
   description String
   type        String    // 'advertiser' или 'supplier'
   features    String[]
-  budget      String?   // Для рекламодателей: бюджет на месяц, для поставщиков: минимальный бюджет
+  budget      String
+  budgetValue Int       @default(0)
+  experience  Int?      // Для поставщиков
+  foundedYear Int?      // Для рекламодателей
+  trafficSource String  @default("Facebook")
   sources     String[]  // Для поставщиков: источники трафика
   goals       String[]  // Для рекламодателей: что хотят получить
   advantages  String[]  // Преимущества
