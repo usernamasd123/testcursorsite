@@ -162,24 +162,29 @@ export default function ChatDialog({ isOpen, onClose, cardData }) {
 
   const handleReaction = async (messageId, reaction) => {
     try {
+      console.log('Sending reaction:', { messageId, reaction });
       const response = await fetch('/api/chat/reaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messageId: messageId.toString(),
           type: reaction === '👍' ? 'like' : 'dislike',
-          sessionId: 'default-session'
+          sessionId: 'default-user'
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Ошибка сохранения реакции');
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to save reaction');
       }
+
+      const data = await response.json();
+      console.log('Reaction saved:', data);
 
       setMessages(prev => prev.map(msg => 
         msg.id === messageId 
-          ? { ...msg, reaction } 
+          ? { ...msg, reaction: reaction } 
           : msg
       ));
     } catch (error) {

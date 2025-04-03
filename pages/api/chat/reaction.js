@@ -15,56 +15,72 @@ export default async function handler(req, res) {
     }
 
     // Проверяем существование сессии
-    let session = await prisma.session.findUnique({
-      where: { id: sessionId }
+    let session = await prisma.userSession.findUnique({
+      where: { userId: sessionId }
     });
 
     // Если сессия не существует, создаем новую
     if (!session) {
-      session = await prisma.session.create({
-        data: { id: sessionId }
+      session = await prisma.userSession.create({
+        data: {
+          userId: sessionId,
+          messageCount: 0,
+          isReturning: false,
+          lastMessageTime: new Date(),
+          messageTimes: []
+        }
       });
+    }
+
+    // Проверяем существование сообщения
+    const message = await prisma.message.findFirst({
+      where: { id: messageId }
+    });
+
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
     }
 
     // Проверяем существование реакции
-    const existingReaction = await prisma.reaction.findFirst({
+    const existingReaction = await prisma.messageReaction.findFirst({
       where: {
         messageId: messageId,
-        sessionId: sessionId
+        sessionId: session.id
       }
     });
+
+    let reaction;
 
     if (existingReaction) {
       // Обновляем существующую реакцию
-      const updatedReaction = await prisma.reaction.update({
+      reaction = await prisma.messageReaction.update({
         where: { id: existingReaction.id },
         data: { type }
       });
-      return res.status(200).json(updatedReaction);
-    }
-
-    // Создаем новую реакцию
-    const reaction = await prisma.reaction.create({
-      data: {
-        messageId,
-        type,
-        sessionId
-      }
-    });
-
-    // Обновляем статистику
-    await prisma.stats.upsert({
-      where: { id: 1 },
-      create: {
-        id: 1,
-        [type === 'like' ? 'likes' : 'dislikes']: 1
-      },
-      update: {
-        [type === 'like' ? 'likes' : 'dislikes']: {
-          increment: 1
+    } else {
+      // Создаем новую реакцию
+      reaction = await prisma.messageReaction.create({
+        data: {
+          messageId,
+          type,
+          sessionId: session.id
         }
-      }
-    });
+      });
+
+      // Обновляем статистику только для новых реакций
+      await prisma.stats.upsert({
+        where: { id: 1 },
+        create: {
+          id: 1,
+          [type === 'like' ? 'likes' : 'dislikes']: 1
+        },
+        update: {
+          [type === 'like' ? 'likes' : 'dislikes']: {
+            increment: 1
+          }
+        }
+      });
+    }
 
     return res.status(200).json(reaction);
   } catch (error) {
