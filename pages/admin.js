@@ -157,7 +157,7 @@ export default function Admin() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Активность по часам
             </h2>
-            <div className="h-64">
+            <div className="h-64 mt-6">
               <div className="relative h-full">
                 <div className="absolute bottom-0 left-0 right-0 h-full flex items-end">
                   {hourLabels.map((_, hour) => {
@@ -167,7 +167,7 @@ export default function Admin() {
                     return (
                       <div
                         key={hour}
-                        className="flex-1 mx-1"
+                        className="flex-1 mx-0.5"
                         style={{ height: '100%' }}
                       >
                         <div
@@ -183,9 +183,11 @@ export default function Admin() {
                   })}
                 </div>
               </div>
-              <div className="flex justify-between mt-4 text-sm text-gray-600">
+              <div className="flex justify-between mt-4 text-xs text-gray-600 overflow-x-hidden">
                 {hourLabels.filter((_, i) => i % 3 === 0).map(label => (
-                  <div key={label}>{label}</div>
+                  <div key={label} className="transform -rotate-45 origin-top-left translate-y-3">
+                    {label}
+                  </div>
                 ))}
               </div>
             </div>
