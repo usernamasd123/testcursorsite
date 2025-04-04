@@ -53,7 +53,12 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    const value = e.target.value.split(',').map(item => item.trim());
+    // Разделяем по запятой, но сохраняем пробелы внутри значений
+    const value = e.target.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(item => {
+      // Убираем только начальные и конечные пробелы
+      const trimmed = item.trim();
+      return trimmed;
+    }).filter(item => item !== ''); // Убираем пустые значения
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -66,12 +71,13 @@ export default function EditCard() {
     // Подготавливаем данные для отправки
     const dataToSend = {
       ...formData,
-      // Преобразуем строковые числа в числовые значения
+      // Преобразуем числа в строки и числа
+      budget: formData.budget.toString(), // Преобразуем в строку для Prisma
       budgetValue: parseInt(formData.budget, 10),
       experience: formData.experience ? parseInt(formData.experience, 10) : null,
       foundedYear: formData.foundedYear ? parseInt(formData.foundedYear, 10) : null,
-      // Для поставщиков один источник трафика, для рекламодателей - массив
-      trafficSource: formData.type === 'supplier' ? formData.trafficSource : formData.sources[0] || '',
+      // Обрабатываем источники трафика в зависимости от типа
+      trafficSource: formData.type === 'supplier' ? formData.trafficSource : '',
       sources: formData.type === 'advertiser' ? formData.sources : []
     };
 
@@ -198,6 +204,7 @@ export default function EditCard() {
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
+                placeholder="Например: Facebook Ads"
               />
             </div>
           ) : (
@@ -209,6 +216,7 @@ export default function EditCard() {
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
+                placeholder="Например: Facebook Ads, Google Ads, TikTok Ads"
               />
             </div>
           )}
@@ -221,6 +229,7 @@ export default function EditCard() {
                 value={formData.goals.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'goals')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Например: Увеличение продаж, Привлечение клиентов"
               />
             </div>
           )}
@@ -232,6 +241,7 @@ export default function EditCard() {
               value={formData.advantages.join(', ')}
               onChange={(e) => handleArrayChange(e, 'advantages')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Например: Быстрая поддержка, Гибкие условия"
             />
           </div>
 
