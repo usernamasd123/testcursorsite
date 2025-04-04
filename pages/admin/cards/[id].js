@@ -54,12 +54,6 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    console.log('handleArrayChange:', {
-      field,
-      value: e.target.value,
-      currentFormData: formData[field]
-    });
-
     // Получаем текущее значение поля
     const currentValue = e.target.value;
     
@@ -72,13 +66,10 @@ export default function EditCard() {
       return;
     }
 
-    // Разбиваем на строки и обрабатываем каждую строку
+    // Разбиваем на строки и сохраняем каждую строку как есть
     const values = currentValue
       .split('\n')
-      .map(item => item.trim())
       .filter(item => item !== '');
-
-    console.log('Processed values:', values);
 
     setFormData(prev => ({
       ...prev,
@@ -88,8 +79,6 @@ export default function EditCard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log('Current form data:', formData);
 
     // Подготавливаем данные для отправки
     const dataToSend = {
@@ -101,13 +90,13 @@ export default function EditCard() {
       experience: formData.type === 'supplier' ? parseInt(formData.experience || '0', 10) : null,
       foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear || '0', 10) : null,
       trafficSource: formData.type === 'supplier' ? formData.trafficSource.trim() : '',
-      sources: formData.type === 'advertiser' ? (formData.sources || []).map(s => s.trim()) : [],
-      goals: (formData.goals || []).map(g => g.trim()),
-      advantages: (formData.advantages || []).map(a => a.trim()),
+      sources: formData.type === 'advertiser' ? (formData.sources || []) : [],
+      goals: formData.goals || [],
+      advantages: formData.advantages || [],
       features: []
     };
 
-    console.log('Data to send:', dataToSend);
+    console.log('Отправляемые данные:', dataToSend);
 
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
