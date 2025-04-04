@@ -25,21 +25,38 @@ export default async function handler(req, res) {
       }
 
       // Проверяем специфичные поля для каждого типа
-      if (type === 'supplier' && !req.body.experience) {
-        return res.status(400).json({ error: 'Experience is required for suppliers' });
+      if (type === 'supplier') {
+        if (!req.body.experience) {
+          return res.status(400).json({ error: 'Experience is required for suppliers' });
+        }
+        if (!trafficSource) {
+          return res.status(400).json({ error: 'Traffic source is required for suppliers' });
+        }
       }
-      if (type === 'advertiser' && !req.body.foundedYear) {
-        return res.status(400).json({ error: 'Founded year is required for advertisers' });
+      
+      if (type === 'advertiser') {
+        if (!req.body.foundedYear) {
+          return res.status(400).json({ error: 'Founded year is required for advertisers' });
+        }
+        if (!req.body.sources || !req.body.sources.length) {
+          return res.status(400).json({ error: 'At least one traffic source is required for advertisers' });
+        }
       }
 
       // Создаем карточку
       const card = await prisma.card.create({
         data: {
           ...req.body,
+          // Убеждаемся, что числовые поля являются числами
+          budget: parseInt(req.body.budget, 10),
+          budgetValue: parseInt(req.body.budgetValue, 10),
+          experience: req.body.experience ? parseInt(req.body.experience, 10) : null,
+          foundedYear: req.body.foundedYear ? parseInt(req.body.foundedYear, 10) : null,
+          // Инициализируем счетчики
           clicks: 0,
           views: 0,
-          // Убеждаемся, что все массивы существуют
-          sources: Array.isArray(req.body.sources) ? req.body.sources : [],
+          // Обрабатываем массивы в зависимости от типа
+          sources: type === 'advertiser' ? (Array.isArray(req.body.sources) ? req.body.sources : []) : [],
           goals: Array.isArray(req.body.goals) ? req.body.goals : [],
           advantages: Array.isArray(req.body.advantages) ? req.body.advantages : []
         }

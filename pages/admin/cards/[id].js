@@ -66,11 +66,13 @@ export default function EditCard() {
     // Подготавливаем данные для отправки
     const dataToSend = {
       ...formData,
+      // Преобразуем строковые числа в числовые значения
       budgetValue: parseInt(formData.budget, 10),
-      // Для поставщиков используем sources, для рекламодателей - trafficSource
-      trafficSource: formData.type === 'supplier' ? formData.sources[0] || '' : formData.trafficSource,
-      // Убеждаемся, что sources существует для поставщиков
-      sources: formData.type === 'supplier' ? formData.sources : []
+      experience: formData.experience ? parseInt(formData.experience, 10) : null,
+      foundedYear: formData.foundedYear ? parseInt(formData.foundedYear, 10) : null,
+      // Для поставщиков один источник трафика, для рекламодателей - массив
+      trafficSource: formData.type === 'supplier' ? formData.trafficSource : formData.sources[0] || '',
+      sources: formData.type === 'advertiser' ? formData.sources : []
     };
 
     const method = isNew ? 'POST' : 'PUT';
@@ -188,23 +190,23 @@ export default function EditCard() {
 
           {formData.type === 'supplier' ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
-              <input
-                type="text"
-                value={formData.sources.join(', ')}
-                onChange={(e) => handleArrayChange(e, 'sources')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-          ) : (
-            <div>
               <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
               <input
                 type="text"
                 name="trafficSource"
                 value={formData.trafficSource}
                 onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
+              <input
+                type="text"
+                value={formData.sources.join(', ')}
+                onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
               />
