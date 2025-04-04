@@ -51,23 +51,6 @@ export default function Card({ id, title, description, features, type, budget, b
           <p className="text-blue-600 font-medium">{budget}</p>
         </div>
 
-        {/* Источники трафика для поставщиков */}
-        {type === 'supplier' && sources && sources.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Источники трафика</h3>
-            <ul className="space-y-2">
-              {sources.map((source, index) => (
-                <li key={index} className="flex items-center text-gray-600">
-                  <svg className="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                  {source}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {/* Цели для рекламодателей */}
         {type === 'advertiser' && goals && goals.length > 0 && (
           <div className="mb-4">
@@ -87,7 +70,7 @@ export default function Card({ id, title, description, features, type, budget, b
 
         {/* Преимущества */}
         {advantages && advantages.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Преимущества</h3>
             <ul className="space-y-2">
               {advantages.map((advantage, index) => (
@@ -99,6 +82,13 @@ export default function Card({ id, title, description, features, type, budget, b
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Описание для поставщиков */}
+        {type === 'supplier' && description && (
+          <div className="mb-6">
+            <p className="text-gray-600">{description}</p>
           </div>
         )}
 
