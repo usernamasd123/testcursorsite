@@ -12,7 +12,7 @@ export default function TrafficProviders() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        const response = await fetch('/api/cards?type=advertiser');
+        const response = await fetch('/api/cards?type=supplier');
         if (!response.ok) {
           throw new Error('Failed to fetch cards');
         }

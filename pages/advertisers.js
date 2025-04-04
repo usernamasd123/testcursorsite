@@ -12,7 +12,7 @@ export default function Advertisers() {
   useEffect(() => {
     const fetchCards = async () => {
       try {
-        const response = await fetch('/api/cards?type=supplier');
+        const response = await fetch('/api/cards?type=advertiser');
         if (!response.ok) {
           throw new Error('Failed to fetch cards');
         }
@@ -64,6 +64,15 @@ export default function Advertisers() {
                 title={card.title}
                 description={card.description}
                 features={card.features}
+                type={card.type}
+                budget={card.budget}
+                budgetValue={card.budgetValue}
+                experience={card.experience}
+                foundedYear={card.foundedYear}
+                trafficSource={card.trafficSource}
+                sources={card.sources}
+                goals={card.goals}
+                advantages={card.advantages}
               />
             ))}
           </div>
