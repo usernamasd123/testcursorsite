@@ -66,9 +66,10 @@ export default function EditCard() {
       return;
     }
 
-    // Разбиваем на строки и сохраняем каждую строку как есть
+    // Разбиваем на строки, удаляем пустые строки и пробелы по краям
     const values = currentValue
       .split('\n')
+      .map(item => item.trim())
       .filter(item => item !== '');
 
     setFormData(prev => ({
