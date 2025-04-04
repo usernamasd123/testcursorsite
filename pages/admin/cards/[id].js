@@ -18,7 +18,8 @@ export default function EditCard() {
     trafficSource: '',
     sources: [],
     goals: [],
-    advantages: []
+    advantages: [],
+    features: []
   });
 
   const [loading, setLoading] = useState(!isNew);
@@ -69,17 +70,18 @@ export default function EditCard() {
       title: formData.title,
       description: formData.description,
       type: formData.type,
-      budget: String(formData.budget), // Принудительно преобразуем в строку
+      budget: String(formData.budget),
       budgetValue: parseInt(formData.budget, 10),
       experience: formData.type === 'supplier' ? parseInt(formData.experience, 10) : null,
       foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear, 10) : null,
       trafficSource: formData.type === 'supplier' ? formData.trafficSource : '',
       sources: formData.type === 'advertiser' ? formData.sources : [],
       goals: formData.type === 'advertiser' ? formData.goals : [],
-      advantages: formData.advantages || []
+      advantages: formData.advantages || [],
+      features: formData.features || []
     };
 
-    console.log('Отправляемые данные:', dataToSend); // Добавляем для отладки
+    console.log('Отправляемые данные:', dataToSend);
 
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
