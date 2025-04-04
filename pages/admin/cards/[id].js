@@ -54,11 +54,24 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Разбиваем текст на строки, обрабатываем каждую строку отдельно
-    const values = e.target.value
-      .split(/[,\n]/) // Разделяем по запятым или переносам строк
+    // Получаем текущее значение поля
+    const currentValue = e.target.value;
+    
+    // Если поле пустое, устанавливаем пустой массив
+    if (!currentValue.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: []
+      }));
+      return;
+    }
+
+    // Разбиваем на строки и обрабатываем каждую строку
+    const values = currentValue
+      .split('\n')
       .map(item => item.trim())
       .filter(item => item !== '');
+
     setFormData(prev => ({
       ...prev,
       [field]: values
@@ -70,17 +83,17 @@ export default function EditCard() {
 
     // Подготавливаем данные для отправки
     const dataToSend = {
-      title: formData.title,
-      description: formData.description,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
       type: formData.type,
       budget: String(formData.budget || '0'),
       budgetValue: parseInt(formData.budget || '0', 10),
       experience: formData.type === 'supplier' ? parseInt(formData.experience || '0', 10) : null,
       foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear || '0', 10) : null,
-      trafficSource: formData.type === 'supplier' ? formData.trafficSource || '' : '',
-      sources: formData.type === 'advertiser' ? formData.sources || [] : [],
-      goals: formData.goals || [],
-      advantages: formData.advantages || [],
+      trafficSource: formData.type === 'supplier' ? formData.trafficSource.trim() : '',
+      sources: formData.type === 'advertiser' ? (formData.sources || []).map(s => s.trim()) : [],
+      goals: (formData.goals || []).map(g => g.trim()),
+      advantages: (formData.advantages || []).map(a => a.trim()),
       features: []
     };
 
