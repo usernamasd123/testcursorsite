@@ -57,7 +57,7 @@ export default function EditCard() {
     const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: value.split('\n').filter(item => item !== '')
+      [field]: value.split('\n')
     }));
   };
 
