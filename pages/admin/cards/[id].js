@@ -54,9 +54,9 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Разделяем строку по запятым, но сохраняем пробелы внутри значений
+    // Простое разделение по запятой с сохранением пробелов
     const values = e.target.value
-      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .split(',')
       .map(item => item.trim())
       .filter(item => item !== '');
     setFormData(prev => ({
@@ -77,10 +77,13 @@ export default function EditCard() {
       budgetValue: parseInt(formData.budget, 10),
       experience: formData.type === 'supplier' ? parseInt(formData.experience, 10) : null,
       foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear, 10) : null,
+      // Для поставщика сохраняем один источник трафика
       trafficSource: formData.type === 'supplier' ? formData.trafficSource : '',
-      sources: formData.type === 'advertiser' ? formData.sources : [],
-      goals: formData.type === 'advertiser' ? formData.goals : [],
-      advantages: formData.advantages || [],
+      // Для рекламодателя сохраняем массив источников
+      sources: formData.type === 'advertiser' ? 
+        (Array.isArray(formData.sources) ? formData.sources : [formData.sources].filter(Boolean)) : [],
+      goals: Array.isArray(formData.goals) ? formData.goals : [formData.goals].filter(Boolean),
+      advantages: Array.isArray(formData.advantages) ? formData.advantages : [formData.advantages].filter(Boolean),
       features: formData.features || []
     };
 
@@ -205,7 +208,7 @@ export default function EditCard() {
               <input
                 type="text"
                 name="trafficSource"
-                value={formData.trafficSource}
+                value={formData.trafficSource || ''}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
@@ -216,7 +219,7 @@ export default function EditCard() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
               <textarea
-                value={formData.sources.join(', ')}
+                value={Array.isArray(formData.sources) ? formData.sources.join(', ') : formData.sources || ''}
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
@@ -230,7 +233,7 @@ export default function EditCard() {
             <div>
               <label className="block text-sm font-medium text-gray-700">Цели (через запятую)</label>
               <textarea
-                value={formData.goals.join(', ')}
+                value={Array.isArray(formData.goals) ? formData.goals.join(', ') : formData.goals || ''}
                 onChange={(e) => handleArrayChange(e, 'goals')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 placeholder="Например: Увеличение продаж, Привлечение клиентов"
@@ -242,7 +245,7 @@ export default function EditCard() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Преимущества (через запятую)</label>
             <textarea
-              value={formData.advantages.join(', ')}
+              value={Array.isArray(formData.advantages) ? formData.advantages.join(', ') : formData.advantages || ''}
               onChange={(e) => handleArrayChange(e, 'advantages')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="Например: Быстрая поддержка, Гибкие условия"
