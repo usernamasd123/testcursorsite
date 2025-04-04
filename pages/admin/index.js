@@ -136,39 +136,16 @@ export default function AdminPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Активность по часам
               </h2>
-              <div className="h-64 mt-6">
-                <div className="relative h-full">
-                  <div className="absolute bottom-0 left-0 right-0 h-full flex items-end">
-                    {hourLabels.map((_, hour) => {
-                      const count = stats.messagesByHour?.[hour] || 0;
-                      const maxCount = Math.max(...Object.values(stats.messagesByHour || {}));
-                      const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
-                      return (
-                        <div
-                          key={hour}
-                          className="flex-1 mx-0.5"
-                          style={{ height: '100%' }}
-                        >
-                          <div
-                            className="bg-blue-500 rounded-t"
-                            style={{
-                              height: `${height}%`,
-                              transition: 'height 0.3s ease'
-                            }}
-                            title={`${count} сообщений`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="flex justify-between mt-4 text-xs text-gray-600 overflow-x-hidden">
-                  {hourLabels.filter((_, i) => i % 3 === 0).map(label => (
-                    <div key={label} className="text-center">
-                      {label}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {hourLabels.map((label, hour) => {
+                  const count = stats.messagesByHour?.[hour] || 0;
+                  return (
+                    <div key={hour} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                      <span className="text-gray-600">{label}</span>
+                      <span className="font-semibold text-blue-600">{count}</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
 
