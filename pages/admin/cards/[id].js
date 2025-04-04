@@ -54,6 +54,12 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
+    console.log('handleArrayChange:', {
+      field,
+      value: e.target.value,
+      currentFormData: formData[field]
+    });
+
     // Получаем текущее значение поля
     const currentValue = e.target.value;
     
@@ -72,6 +78,8 @@ export default function EditCard() {
       .map(item => item.trim())
       .filter(item => item !== '');
 
+    console.log('Processed values:', values);
+
     setFormData(prev => ({
       ...prev,
       [field]: values
@@ -80,6 +88,8 @@ export default function EditCard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log('Current form data:', formData);
 
     // Подготавливаем данные для отправки
     const dataToSend = {
@@ -97,7 +107,7 @@ export default function EditCard() {
       features: []
     };
 
-    console.log('Отправляемые данные:', dataToSend);
+    console.log('Data to send:', dataToSend);
 
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
