@@ -63,10 +63,14 @@ export default function EditCard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Добавляем budgetValue на основе budget
+    // Подготавливаем данные для отправки
     const dataToSend = {
       ...formData,
-      budgetValue: parseInt(formData.budget, 10)
+      budgetValue: parseInt(formData.budget, 10),
+      // Для поставщиков используем sources, для рекламодателей - trafficSource
+      trafficSource: formData.type === 'supplier' ? formData.sources[0] || '' : formData.trafficSource,
+      // Убеждаемся, что sources существует для поставщиков
+      sources: formData.type === 'supplier' ? formData.sources : []
     };
 
     const method = isNew ? 'POST' : 'PUT';
@@ -82,13 +86,14 @@ export default function EditCard() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save card');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save card');
       }
 
       router.push('/admin/cards');
     } catch (error) {
       console.error('Error saving card:', error);
-      alert('Ошибка при сохранении карточки');
+      alert('Ошибка при сохранении карточки: ' + error.message);
     }
   };
 
@@ -181,19 +186,7 @@ export default function EditCard() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
-            <input
-              type="text"
-              name="trafficSource"
-              value={formData.trafficSource}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          {formData.type === 'supplier' && (
+          {formData.type === 'supplier' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
               <input
@@ -201,6 +194,19 @@ export default function EditCard() {
                 value={formData.sources.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
+              <input
+                type="text"
+                name="trafficSource"
+                value={formData.trafficSource}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
               />
             </div>
           )}
