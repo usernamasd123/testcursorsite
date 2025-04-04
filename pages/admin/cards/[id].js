@@ -12,7 +12,6 @@ export default function EditCard() {
     description: '',
     type: 'supplier',
     budget: '',
-    budgetValue: 0,
     experience: '',
     foundedYear: '',
     trafficSource: '',
@@ -55,10 +54,14 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    const value = e.target.value.split(',').map(item => item.trim());
+    // Разделяем строку по запятым, но сохраняем пробелы внутри значений
+    const values = e.target.value
+      .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+      .map(item => item.trim())
+      .filter(item => item !== '');
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: values
     }));
   };
 
@@ -182,49 +185,43 @@ export default function EditCard() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Бюджет</label>
+            <label className="block text-sm font-medium text-gray-700">
+              {formData.type === 'supplier' ? 'Минимальный бюджет ($)' : 'Бюджет на месяц ($)'}
+            </label>
             <input
-              type="text"
+              type="number"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
+              min="0"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Значение бюджета</label>
-            <input
-              type="number"
-              name="budgetValue"
-              value={formData.budgetValue}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
-            <input
-              type="text"
-              name="trafficSource"
-              value={formData.trafficSource}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          {formData.type === 'supplier' && (
+          {formData.type === 'supplier' ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
+              <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
               <input
                 type="text"
+                name="trafficSource"
+                value={formData.trafficSource}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+                placeholder="Например: Facebook Ads"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
+              <textarea
                 value={formData.sources.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+                placeholder="Например: Facebook Ads, Google Ads, TikTok Ads"
+                rows={2}
               />
             </div>
           )}
@@ -232,22 +229,24 @@ export default function EditCard() {
           {formData.type === 'advertiser' && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Цели (через запятую)</label>
-              <input
-                type="text"
+              <textarea
                 value={formData.goals.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'goals')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="Например: Увеличение продаж, Привлечение клиентов"
+                rows={2}
               />
             </div>
           )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Преимущества (через запятую)</label>
-            <input
-              type="text"
+            <textarea
               value={formData.advantages.join(', ')}
               onChange={(e) => handleArrayChange(e, 'advantages')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Например: Быстрая поддержка, Гибкие условия"
+              rows={2}
             />
           </div>
 
