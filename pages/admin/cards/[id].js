@@ -230,6 +230,18 @@ export default function EditCard() {
               <textarea
                 value={(formData.sources || []).join('\n')}
                 onChange={(e) => handleArrayChange(e, 'sources')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const textarea = e.target;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const value = textarea.value;
+                    textarea.value = value.substring(0, start) + '\n' + value.substring(end);
+                    textarea.selectionStart = textarea.selectionEnd = start + 1;
+                    handleArrayChange(e, 'sources');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
                 placeholder="Введите каждый источник с новой строки, например:&#10;Facebook Ads&#10;Google Ads&#10;TikTok Ads"
@@ -244,6 +256,18 @@ export default function EditCard() {
               <textarea
                 value={(formData.goals || []).join('\n')}
                 onChange={(e) => handleArrayChange(e, 'goals')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const textarea = e.target;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const value = textarea.value;
+                    textarea.value = value.substring(0, start) + '\n' + value.substring(end);
+                    textarea.selectionStart = textarea.selectionEnd = start + 1;
+                    handleArrayChange(e, 'goals');
+                  }
+                }}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 placeholder="Введите каждую цель с новой строки, например:&#10;Увеличение продаж&#10;Привлечение клиентов"
                 rows={4}
@@ -256,6 +280,18 @@ export default function EditCard() {
             <textarea
               value={(formData.advantages || []).join('\n')}
               onChange={(e) => handleArrayChange(e, 'advantages')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  const textarea = e.target;
+                  const start = textarea.selectionStart;
+                  const end = textarea.selectionEnd;
+                  const value = textarea.value;
+                  textarea.value = value.substring(0, start) + '\n' + value.substring(end);
+                  textarea.selectionStart = textarea.selectionEnd = start + 1;
+                  handleArrayChange(e, 'advantages');
+                }
+              }}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="Введите каждое преимущество с новой строки, например:&#10;Быстрая поддержка&#10;Гибкие условия"
               rows={4}
