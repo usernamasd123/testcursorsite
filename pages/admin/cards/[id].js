@@ -58,7 +58,7 @@ export default function EditCard() {
     const currentValue = e.target.value;
     
     // Если поле пустое, устанавливаем пустой массив
-    if (!currentValue.trim()) {
+    if (!currentValue) {
       setFormData(prev => ({
         ...prev,
         [field]: []
@@ -66,10 +66,9 @@ export default function EditCard() {
       return;
     }
 
-    // Разбиваем на строки, удаляем пустые строки и пробелы по краям
+    // Разбиваем на строки и сохраняем как есть, только удаляем пустые строки
     const values = currentValue
       .split('\n')
-      .map(item => item.trim())
       .filter(item => item !== '');
 
     setFormData(prev => ({
