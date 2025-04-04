@@ -54,26 +54,10 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Получаем текущее значение поля
-    const currentValue = e.target.value;
-    
-    // Если поле пустое, устанавливаем пустой массив
-    if (!currentValue) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: []
-      }));
-      return;
-    }
-
-    // Разбиваем на строки и сохраняем как есть, только удаляем пустые строки
-    const values = currentValue
-      .split('\n')
-      .filter(item => item !== '');
-
+    const value = e.target.value;
     setFormData(prev => ({
       ...prev,
-      [field]: values
+      [field]: value.split('\n').filter(item => item !== '')
     }));
   };
 
