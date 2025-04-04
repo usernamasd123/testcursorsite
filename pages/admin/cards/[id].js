@@ -53,15 +53,11 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Разделяем по запятой, но сохраняем пробелы внутри значений
-    const value = e.target.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(item => {
-      // Убираем только начальные и конечные пробелы
-      const trimmed = item.trim();
-      return trimmed;
-    }).filter(item => item !== ''); // Убираем пустые значения
+    // Разделяем по запятой и сохраняем пробелы внутри значений
+    const values = e.target.value.split(',').map(item => item.trim()).filter(item => item !== '');
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: values
     }));
   };
 
