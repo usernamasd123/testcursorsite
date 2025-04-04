@@ -47,18 +47,18 @@ export default async function handler(req, res) {
       const card = await prisma.card.create({
         data: {
           ...req.body,
-          // Убеждаемся, что числовые поля являются числами
-          budget: parseInt(req.body.budget, 10),
-          budgetValue: parseInt(req.body.budgetValue, 10),
+          // Преобразуем числовые поля в правильные типы
+          budget: req.body.budget.toString(), // Преобразуем в строку для Prisma
+          budgetValue: parseInt(req.body.budget, 10),
           experience: req.body.experience ? parseInt(req.body.experience, 10) : null,
           foundedYear: req.body.foundedYear ? parseInt(req.body.foundedYear, 10) : null,
+          // Обрабатываем массивы
+          sources: Array.isArray(req.body.sources) ? req.body.sources : [],
+          goals: Array.isArray(req.body.goals) ? req.body.goals : [],
+          advantages: Array.isArray(req.body.advantages) ? req.body.advantages : [],
           // Инициализируем счетчики
           clicks: 0,
-          views: 0,
-          // Обрабатываем массивы в зависимости от типа
-          sources: type === 'advertiser' ? (Array.isArray(req.body.sources) ? req.body.sources : []) : [],
-          goals: Array.isArray(req.body.goals) ? req.body.goals : [],
-          advantages: Array.isArray(req.body.advantages) ? req.body.advantages : []
+          views: 0
         }
       });
       
