@@ -64,6 +64,15 @@ export default function TrafficProviders() {
                 title={card.title}
                 description={card.description}
                 features={card.features}
+                type={card.type}
+                budget={card.budget}
+                budgetValue={card.budgetValue}
+                experience={card.experience}
+                foundedYear={card.foundedYear}
+                trafficSource={card.trafficSource}
+                sources={card.sources}
+                goals={card.goals}
+                advantages={card.advantages}
               />
             ))}
           </div>
