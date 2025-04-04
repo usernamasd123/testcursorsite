@@ -54,9 +54,9 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Простое разделение по запятой с сохранением пробелов
+    // Разбиваем текст на строки, обрабатываем каждую строку отдельно
     const values = e.target.value
-      .split(',')
+      .split(/[,\n]/) // Разделяем по запятым или переносам строк
       .map(item => item.trim())
       .filter(item => item !== '');
     setFormData(prev => ({
@@ -73,18 +73,15 @@ export default function EditCard() {
       title: formData.title,
       description: formData.description,
       type: formData.type,
-      budget: String(formData.budget),
-      budgetValue: parseInt(formData.budget, 10),
-      experience: formData.type === 'supplier' ? parseInt(formData.experience, 10) : null,
-      foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear, 10) : null,
-      // Для поставщика сохраняем один источник трафика
-      trafficSource: formData.type === 'supplier' ? formData.trafficSource : '',
-      // Для рекламодателя сохраняем массив источников
-      sources: formData.type === 'advertiser' ? 
-        (Array.isArray(formData.sources) ? formData.sources : [formData.sources].filter(Boolean)) : [],
-      goals: Array.isArray(formData.goals) ? formData.goals : [formData.goals].filter(Boolean),
-      advantages: Array.isArray(formData.advantages) ? formData.advantages : [formData.advantages].filter(Boolean),
-      features: formData.features || []
+      budget: String(formData.budget || '0'),
+      budgetValue: parseInt(formData.budget || '0', 10),
+      experience: formData.type === 'supplier' ? parseInt(formData.experience || '0', 10) : null,
+      foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear || '0', 10) : null,
+      trafficSource: formData.type === 'supplier' ? formData.trafficSource || '' : '',
+      sources: formData.type === 'advertiser' ? formData.sources || [] : [],
+      goals: formData.goals || [],
+      advantages: formData.advantages || [],
+      features: []
     };
 
     console.log('Отправляемые данные:', dataToSend);
@@ -217,39 +214,39 @@ export default function EditCard() {
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
+              <label className="block text-sm font-medium text-gray-700">Источники трафика</label>
               <textarea
-                value={Array.isArray(formData.sources) ? formData.sources.join(', ') : formData.sources || ''}
+                value={(formData.sources || []).join('\n')}
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
-                placeholder="Например: Facebook Ads, Google Ads, TikTok Ads"
-                rows={2}
+                placeholder="Введите каждый источник с новой строки, например:&#10;Facebook Ads&#10;Google Ads&#10;TikTok Ads"
+                rows={4}
               />
             </div>
           )}
 
           {formData.type === 'advertiser' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Цели (через запятую)</label>
+              <label className="block text-sm font-medium text-gray-700">Цели</label>
               <textarea
-                value={Array.isArray(formData.goals) ? formData.goals.join(', ') : formData.goals || ''}
+                value={(formData.goals || []).join('\n')}
                 onChange={(e) => handleArrayChange(e, 'goals')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Например: Увеличение продаж, Привлечение клиентов"
-                rows={2}
+                placeholder="Введите каждую цель с новой строки, например:&#10;Увеличение продаж&#10;Привлечение клиентов"
+                rows={4}
               />
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Преимущества (через запятую)</label>
+            <label className="block text-sm font-medium text-gray-700">Преимущества</label>
             <textarea
-              value={Array.isArray(formData.advantages) ? formData.advantages.join(', ') : formData.advantages || ''}
+              value={(formData.advantages || []).join('\n')}
               onChange={(e) => handleArrayChange(e, 'advantages')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Например: Быстрая поддержка, Гибкие условия"
-              rows={2}
+              placeholder="Введите каждое преимущество с новой строки, например:&#10;Быстрая поддержка&#10;Гибкие условия"
+              rows={4}
             />
           </div>
 

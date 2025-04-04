@@ -46,19 +46,19 @@ export default async function handler(req, res) {
       // Создаем карточку
       const card = await prisma.card.create({
         data: {
-          title: req.body.title,
-          description: req.body.description,
+          title: req.body.title.trim(),
+          description: req.body.description.trim(),
           type: req.body.type,
-          budget: String(req.body.budget),
-          budgetValue: parseInt(req.body.budget, 10),
-          experience: req.body.type === 'supplier' ? parseInt(req.body.experience, 10) : null,
-          foundedYear: req.body.type === 'advertiser' ? parseInt(req.body.foundedYear, 10) : null,
-          trafficSource: req.body.type === 'supplier' ? (req.body.trafficSource || '') : '',
+          budget: String(req.body.budget || '0'),
+          budgetValue: parseInt(req.body.budget || '0', 10),
+          experience: req.body.type === 'supplier' ? parseInt(req.body.experience || '0', 10) : null,
+          foundedYear: req.body.type === 'advertiser' ? parseInt(req.body.foundedYear || '0', 10) : null,
+          trafficSource: req.body.type === 'supplier' ? (req.body.trafficSource || '').trim() : '',
           sources: req.body.type === 'advertiser' ? 
-            (Array.isArray(req.body.sources) ? req.body.sources : [req.body.sources].filter(Boolean)) : [],
-          goals: Array.isArray(req.body.goals) ? req.body.goals : [req.body.goals].filter(Boolean),
-          advantages: Array.isArray(req.body.advantages) ? req.body.advantages : [req.body.advantages].filter(Boolean),
-          features: Array.isArray(req.body.features) ? req.body.features : [],
+            (Array.isArray(req.body.sources) ? req.body.sources.map(s => s.trim()).filter(Boolean) : []) : [],
+          goals: Array.isArray(req.body.goals) ? req.body.goals.map(g => g.trim()).filter(Boolean) : [],
+          advantages: Array.isArray(req.body.advantages) ? req.body.advantages.map(a => a.trim()).filter(Boolean) : [],
+          features: [],
           clicks: 0
         }
       });
