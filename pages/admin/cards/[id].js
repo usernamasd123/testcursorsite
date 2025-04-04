@@ -12,7 +12,6 @@ export default function EditCard() {
     description: '',
     type: 'supplier',
     budget: '',
-    budgetValue: 0,
     experience: '',
     foundedYear: '',
     trafficSource: '',
@@ -64,6 +63,12 @@ export default function EditCard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Добавляем budgetValue на основе budget
+    const dataToSend = {
+      ...formData,
+      budgetValue: parseInt(formData.budget, 10)
+    };
+
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
 
@@ -73,7 +78,7 @@ export default function EditCard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
@@ -162,26 +167,17 @@ export default function EditCard() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Бюджет</label>
+            <label className="block text-sm font-medium text-gray-700">
+              {formData.type === 'advertiser' ? 'Бюджет на месяц ($)' : 'Минимальный бюджет ($)'}
+            </label>
             <input
-              type="text"
+              type="number"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Значение бюджета</label>
-            <input
-              type="number"
-              name="budgetValue"
-              value={formData.budgetValue}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              required
+              min="0"
             />
           </div>
 

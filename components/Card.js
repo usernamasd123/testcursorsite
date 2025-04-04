@@ -48,7 +48,7 @@ export default function Card({ id, title, description, features, type, budget, b
           <h3 className="text-lg font-semibold text-gray-700 mb-2">
             {type === 'advertiser' ? 'Бюджет на месяц' : 'Минимальный бюджет'}
           </h3>
-          <p className="text-blue-600 font-medium">{budget}</p>
+          <p className="text-blue-600 font-medium">${budget}</p>
         </div>
 
         {/* Цели для рекламодателей */}

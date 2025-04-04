@@ -72,8 +72,8 @@ export default function AdminCards() {
                 <p className="text-gray-600">{card.type === 'supplier' ? 'Поставщик трафика' : 'Рекламодатель'}</p>
                 <p className="text-sm text-gray-500">
                   {card.type === 'supplier' 
-                    ? `Опыт: ${card.experience} лет • Бюджет: ${card.budget}`
-                    : `Основано: ${card.foundedYear} • Бюджет: ${card.budget}`
+                    ? `Опыт: ${card.experience} лет • Бюджет: $${card.budget}`
+                    : `Основано: ${card.foundedYear} • Бюджет: $${card.budget}`
                   }
                 </p>
               </div>
