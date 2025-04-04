@@ -40,7 +40,20 @@ export default function Card({ id, title, description, features, type, budget, b
         {/* Источник трафика */}
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Источник трафика</h3>
-          <p className="text-blue-600">{trafficSource}</p>
+          {type === 'supplier' ? (
+            <p className="text-blue-600">{trafficSource}</p>
+          ) : (
+            <ul className="space-y-2">
+              {sources && sources.map((source, index) => (
+                <li key={index} className="flex items-center text-blue-600">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                  {source}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Бюджет */}
