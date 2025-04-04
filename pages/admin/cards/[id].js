@@ -12,6 +12,7 @@ export default function EditCard() {
     description: '',
     type: 'supplier',
     budget: '',
+    budgetValue: 0,
     experience: '',
     foundedYear: '',
     trafficSource: '',
@@ -53,11 +54,10 @@ export default function EditCard() {
   };
 
   const handleArrayChange = (e, field) => {
-    // Разделяем по запятой и сохраняем пробелы внутри значений
-    const values = e.target.value.split(',').map(item => item.trim()).filter(item => item !== '');
+    const value = e.target.value.split(',').map(item => item.trim());
     setFormData(prev => ({
       ...prev,
-      [field]: values
+      [field]: value
     }));
   };
 
@@ -66,16 +66,20 @@ export default function EditCard() {
 
     // Подготавливаем данные для отправки
     const dataToSend = {
-      ...formData,
-      // Преобразуем числа в строки и числа
-      budget: formData.budget.toString(), // Преобразуем в строку для Prisma
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      budget: String(formData.budget), // Принудительно преобразуем в строку
       budgetValue: parseInt(formData.budget, 10),
-      experience: formData.experience ? parseInt(formData.experience, 10) : null,
-      foundedYear: formData.foundedYear ? parseInt(formData.foundedYear, 10) : null,
-      // Обрабатываем источники трафика в зависимости от типа
+      experience: formData.type === 'supplier' ? parseInt(formData.experience, 10) : null,
+      foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear, 10) : null,
       trafficSource: formData.type === 'supplier' ? formData.trafficSource : '',
-      sources: formData.type === 'advertiser' ? formData.sources : []
+      sources: formData.type === 'advertiser' ? formData.sources : [],
+      goals: formData.type === 'advertiser' ? formData.goals : [],
+      advantages: formData.advantages || []
     };
+
+    console.log('Отправляемые данные:', dataToSend); // Добавляем для отладки
 
     const method = isNew ? 'POST' : 'PUT';
     const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
@@ -176,34 +180,42 @@ export default function EditCard() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {formData.type === 'advertiser' ? 'Бюджет на месяц ($)' : 'Минимальный бюджет ($)'}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Бюджет</label>
             <input
-              type="number"
+              type="text"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
-              min="0"
             />
           </div>
 
-          {formData.type === 'supplier' ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
-              <input
-                type="text"
-                name="trafficSource"
-                value={formData.trafficSource}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-                placeholder="Например: Facebook Ads"
-              />
-            </div>
-          ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Значение бюджета</label>
+            <input
+              type="number"
+              name="budgetValue"
+              value={formData.budgetValue}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
+            <input
+              type="text"
+              name="trafficSource"
+              value={formData.trafficSource}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+          </div>
+
+          {formData.type === 'supplier' && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Источники трафика (через запятую)</label>
               <input
@@ -211,8 +223,6 @@ export default function EditCard() {
                 value={formData.sources.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'sources')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-                placeholder="Например: Facebook Ads, Google Ads, TikTok Ads"
               />
             </div>
           )}
@@ -225,7 +235,6 @@ export default function EditCard() {
                 value={formData.goals.join(', ')}
                 onChange={(e) => handleArrayChange(e, 'goals')}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Например: Увеличение продаж, Привлечение клиентов"
               />
             </div>
           )}
@@ -237,7 +246,6 @@ export default function EditCard() {
               value={formData.advantages.join(', ')}
               onChange={(e) => handleArrayChange(e, 'advantages')}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Например: Быстрая поддержка, Гибкие условия"
             />
           </div>
 
