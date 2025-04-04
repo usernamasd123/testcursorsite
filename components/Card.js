@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ChatDialog from './ChatDialog';
 
-export default function Card({ id, title, description, features, type, budget, sources, goals, advantages }) {
+export default function Card({ id, title, description, features, type, budget, budgetValue, experience, foundedYear, trafficSource, sources, goals, advantages }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleContactClick = async () => {
@@ -27,10 +27,20 @@ export default function Card({ id, title, description, features, type, budget, s
   return (
     <>
       <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
-        {/* Заголовок и описание */}
+        {/* Заголовок */}
         <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
-        <p className="text-gray-600 mb-6">{description}</p>
         
+        {/* Описание с годом основания или опытом */}
+        <p className="text-gray-600 mb-6">
+          {type === 'advertiser' ? `Основано в ${foundedYear}` : `Опыт ${experience} лет`}
+        </p>
+        
+        {/* Источник трафика */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Источник трафика</h3>
+          <p className="text-blue-600">{trafficSource}</p>
+        </div>
+
         {/* Бюджет */}
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">
@@ -90,6 +100,7 @@ export default function Card({ id, title, description, features, type, budget, s
           </div>
         )}
 
+        {/* Кнопка связаться */}
         <button
           onClick={handleContactClick}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
@@ -101,7 +112,7 @@ export default function Card({ id, title, description, features, type, budget, s
       <ChatDialog
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}
-        cardData={{ id, title, description, features, type, budget, sources, goals, advantages }}
+        cardData={{ id, title, description, features, type, budget, budgetValue, experience, foundedYear, trafficSource, sources, goals, advantages }}
       />
     </>
   );
