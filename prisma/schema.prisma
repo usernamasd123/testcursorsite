@@ -47,7 +47,7 @@ model TrafficSource {
   name        String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  cards       Card[]
+  cards       CardTrafficSource[]
 }
 
 model Card {
@@ -59,16 +59,25 @@ model Card {
   budgetValue   Int
   experience    Int?
   foundedYear   Int?
-  trafficSource String?       // Для поставщиков - один источник
-  sources       String[]      // Для рекламодателей - массив источников
   goals         String[]
   advantages    String[]
   features      String[]
   clicks        Int          @default(0)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-  trafficSources TrafficSource[] // Связь с фиксированными источниками
+  trafficSources CardTrafficSource[] // Связь с фиксированными источниками
   messages      Message[]     // Обратная связь с Message
+}
+
+model CardTrafficSource {
+  id              String       @id @default(cuid())
+  card            Card         @relation(fields: [cardId], references: [id])
+  cardId          String
+  trafficSource   TrafficSource @relation(fields: [trafficSourceId], references: [id])
+  trafficSourceId String
+  createdAt       DateTime     @default(now())
+
+  @@unique([cardId, trafficSourceId])
 }
 
 model Stats {

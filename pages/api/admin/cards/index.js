@@ -6,6 +6,13 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const cards = await prisma.card.findMany({
+        include: {
+          trafficSources: {
+            include: {
+              trafficSource: true
+            }
+          }
+        },
         orderBy: {
           createdAt: 'desc'
         }
@@ -37,27 +44,25 @@ export default async function handler(req, res) {
           foundedYear: type === 'advertiser' ? parseInt(foundedYear || '0', 10) : null,
           goals: Array.isArray(goals) ? goals : [],
           advantages: Array.isArray(advantages) ? advantages : [],
-          features: Array.isArray(features) ? features : []
-        }
-      });
-
-      // Создаем связи с источниками трафика
-      if (Array.isArray(trafficSources)) {
-        for (const sourceName of trafficSources) {
-          const source = await prisma.trafficSource.findFirst({
-            where: { name: sourceName }
-          });
-
-          if (source) {
-            await prisma.cardTrafficSource.create({
-              data: {
-                cardId: newCard.id,
-                trafficSourceId: source.id
+          features: Array.isArray(features) ? features : [],
+          trafficSources: {
+            create: Array.isArray(trafficSources) ? trafficSources.map(sourceName => ({
+              trafficSource: {
+                connect: {
+                  name: sourceName
+                }
               }
-            });
+            })) : []
+          }
+        },
+        include: {
+          trafficSources: {
+            include: {
+              trafficSource: true
+            }
           }
         }
-      }
+      });
 
       res.status(201).json(newCard);
     } else {
