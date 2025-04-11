@@ -5,6 +5,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      console.log('Получение списка карточек...');
       const cards = await prisma.card.findMany({
         include: {
           trafficSources: {
@@ -17,8 +18,10 @@ export default async function handler(req, res) {
           createdAt: 'desc'
         }
       });
+      console.log('Найдено карточек:', cards.length);
       res.status(200).json(cards);
     } else if (req.method === 'POST') {
+      console.log('Создание новой карточки...');
       const {
         title,
         description,
@@ -32,12 +35,19 @@ export default async function handler(req, res) {
         features
       } = req.body;
 
+      console.log('Полученные данные:', {
+        title,
+        type,
+        budget,
+        trafficSources
+      });
+
       // Создаем новую карточку
       const newCard = await prisma.card.create({
         data: {
-          title: title.trim(),
-          description: description.trim(),
-          type,
+          title: title?.trim() || '',
+          description: description?.trim() || '',
+          type: type || 'supplier',
           budget: String(budget || '0'),
           budgetValue: parseInt(budget || '0', 10),
           experience: type === 'supplier' ? parseInt(experience || '0', 10) : null,
@@ -64,14 +74,19 @@ export default async function handler(req, res) {
         }
       });
 
+      console.log('Карточка создана:', newCard.id);
       res.status(201).json(newCard);
     } else {
       res.setHeader('Allow', ['GET', 'POST']);
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (error) {
-    console.error('Ошибка:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    console.error('Ошибка в API /api/admin/cards:', error);
+    res.status(500).json({ 
+      error: 'Ошибка сервера',
+      message: error.message,
+      details: error
+    });
   } finally {
     await prisma.$disconnect();
   }
