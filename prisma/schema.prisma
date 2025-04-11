@@ -42,24 +42,33 @@ model Reaction {
   @@unique([messageId, sessionId])
 }
 
+model TrafficSource {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cards       Card[]
+}
+
 model Card {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  type        String    // 'advertiser' или 'supplier'
-  features    String[]
-  budget      String
-  budgetValue Int       @default(0)
-  experience  Int?      // Для поставщиков
-  foundedYear Int?      // Для рекламодателей
-  trafficSource String  @default("Facebook")
-  sources     String[]  // Для поставщиков: источники трафика
-  goals       String[]  // Для рекламодателей: что хотят получить
-  advantages  String[]  // Преимущества
-  clicks      Int       @default(0)
-  messages    Message[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String         @id @default(cuid())
+  title         String
+  description   String
+  type          String        // 'supplier' или 'advertiser'
+  budget        String
+  budgetValue   Int
+  experience    Int?
+  foundedYear   Int?
+  trafficSource String?       // Для поставщиков - один источник
+  sources       String[]      // Для рекламодателей - массив источников
+  goals         String[]
+  advantages    String[]
+  features      String[]
+  clicks        Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  trafficSources TrafficSource[] // Связь с фиксированными источниками
+  messages      Message[]     // Обратная связь с Message
 }
 
 model Stats {

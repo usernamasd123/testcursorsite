@@ -1,82 +1,82 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
 export default async function handler(req, res) {
+  const prisma = new PrismaClient();
   const { id } = req.query;
-  console.log('Request method:', req.method);
-  console.log('Card ID:', id);
 
-  if (req.method === 'GET') {
-    try {
-      console.log('Fetching card with ID:', id);
-      const card = await prisma.card.findUnique({
-        where: { id }
-      });
+  try {
+    if (req.method === 'PUT') {
+      const {
+        title,
+        description,
+        type,
+        budget,
+        experience,
+        foundedYear,
+        trafficSources,
+        goals,
+        advantages,
+        features
+      } = req.body;
 
-      console.log('Found card:', card);
-
-      if (!card) {
-        console.log('Card not found');
-        return res.status(404).json({ error: 'Card not found' });
-      }
-
-      res.status(200).json(card);
-    } catch (error) {
-      console.error('Error fetching card:', error);
-      res.status(500).json({ error: `Failed to fetch card: ${error.message}` });
-    }
-  } else if (req.method === 'PUT') {
-    try {
-      console.log('PUT request body:', req.body);
-      
+      // Подготавливаем данные для обновления
       const updateData = {
-        title: req.body.title.trim(),
-        description: req.body.description.trim(),
-        type: req.body.type,
-        budget: String(req.body.budget || '0'),
-        budgetValue: parseInt(req.body.budget || '0', 10),
-        experience: req.body.type === 'supplier' ? parseInt(req.body.experience || '0', 10) : null,
-        foundedYear: req.body.type === 'advertiser' ? parseInt(req.body.foundedYear || '0', 10) : null,
-        trafficSource: req.body.type === 'supplier' ? (req.body.trafficSource || '').trim() : '',
-        sources: req.body.type === 'advertiser' ? 
-          (Array.isArray(req.body.sources) ? req.body.sources : []) : [],
-        goals: Array.isArray(req.body.goals) ? req.body.goals : [],
-        advantages: Array.isArray(req.body.advantages) ? req.body.advantages : [],
-        features: []
+        title: title.trim(),
+        description: description.trim(),
+        type,
+        budget: String(budget || '0'),
+        budgetValue: parseInt(budget || '0', 10),
+        experience: type === 'supplier' ? parseInt(experience || '0', 10) : null,
+        foundedYear: type === 'advertiser' ? parseInt(foundedYear || '0', 10) : null,
+        goals: Array.isArray(goals) ? goals : [],
+        advantages: Array.isArray(advantages) ? advantages : [],
+        features: Array.isArray(features) ? features : []
       };
 
-      console.log('Processed update data:', updateData);
-      
-      const card = await prisma.card.update({
+      // Обновляем карточку
+      const updatedCard = await prisma.card.update({
         where: { id },
         data: updateData
       });
 
-      console.log('Updated card:', card);
-      res.status(200).json(card);
-    } catch (error) {
-      console.error('Error updating card:', error);
-      res.status(500).json({ error: `Failed to update card: ${error.message}` });
-    }
-  } else if (req.method === 'DELETE') {
-    try {
-      console.log('Deleting card with ID:', id);
-      
+      // Обновляем связи с источниками трафика
+      if (Array.isArray(trafficSources)) {
+        // Удаляем все существующие связи
+        await prisma.cardTrafficSource.deleteMany({
+          where: { cardId: id }
+        });
+
+        // Создаем новые связи
+        for (const sourceName of trafficSources) {
+          const source = await prisma.trafficSource.findFirst({
+            where: { name: sourceName }
+          });
+
+          if (source) {
+            await prisma.cardTrafficSource.create({
+              data: {
+                cardId: id,
+                trafficSourceId: source.id
+              }
+            });
+          }
+        }
+      }
+
+      res.status(200).json(updatedCard);
+    } else if (req.method === 'DELETE') {
       await prisma.card.delete({
         where: { id }
       });
-
-      console.log('Card deleted successfully');
-      res.status(204).end();
-    } catch (error) {
-      console.error('Error deleting card:', error);
-      res.status(500).json({ error: `Failed to delete card: ${error.message}` });
+      res.status(200).json({ message: 'Карточка удалена' });
+    } else {
+      res.setHeader('Allow', ['PUT', 'DELETE']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } else {
-    res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+  } catch (error) {
+    console.error('Ошибка:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  } finally {
+    await prisma.$disconnect();
   }
-
-  await prisma.$disconnect();
 } 
