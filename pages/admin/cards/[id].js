@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { PrismaClient } from '@prisma/client';
 import AdminLayout from '../../../components/AdminLayout';
 
-export default function EditCard() {
+export default function EditCard({ card, trafficSources }) {
   const router = useRouter();
   const { id } = router.query;
   const isNew = id === 'new';
@@ -10,15 +11,15 @@ export default function EditCard() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'supplier',
+    type: 'advertiser',
+    features: [],
     budget: '',
-    experience: '',
-    foundedYear: '',
-    trafficSource: '',
-    sources: [],
+    budgetValue: 0,
+    experience: 0,
+    foundedYear: 0,
+    trafficSources: [],
     goals: [],
-    advantages: [],
-    features: []
+    advantages: []
   });
 
   const [loading, setLoading] = useState(!isNew);
@@ -29,6 +30,21 @@ export default function EditCard() {
       fetchCard();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (card) {
+      setFormData({
+        ...card,
+        budget: card.budget || '',
+        budgetValue: card.budgetValue || 0,
+        experience: card.experience || 0,
+        foundedYear: card.foundedYear || 0,
+        trafficSources: card.trafficSources?.map(ts => ts.name) || [],
+        goals: card.goals || [],
+        advantages: card.advantages || []
+      });
+    }
+  }, [card]);
 
   const fetchCard = async () => {
     try {
@@ -53,56 +69,40 @@ export default function EditCard() {
     }));
   };
 
-  const handleArrayChange = (e, field) => {
-    const value = e.target.value;
+  const handleArrayChange = (e) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [field]: value.split('\n')
+      [name]: value.split('\n').filter(item => item.trim() !== '')
+    }));
+  };
+
+  const handleTrafficSourceChange = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+    setFormData(prev => ({
+      ...prev,
+      trafficSources: selectedOptions
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Подготавливаем данные для отправки
-    const dataToSend = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      type: formData.type,
-      budget: String(formData.budget || '0'),
-      budgetValue: parseInt(formData.budget || '0', 10),
-      experience: formData.type === 'supplier' ? parseInt(formData.experience || '0', 10) : null,
-      foundedYear: formData.type === 'advertiser' ? parseInt(formData.foundedYear || '0', 10) : null,
-      trafficSource: formData.type === 'supplier' ? formData.trafficSource.trim() : '',
-      sources: formData.type === 'advertiser' ? (formData.sources || []) : [],
-      goals: formData.goals || [],
-      advantages: formData.advantages || [],
-      features: []
-    };
-
-    console.log('Отправляемые данные:', dataToSend);
-
-    const method = isNew ? 'POST' : 'PUT';
-    const url = isNew ? '/api/admin/cards' : `/api/admin/cards/${id}`;
-
     try {
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(`/api/admin/cards/${card?.id || ''}`, {
+        method: card ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dataToSend),
+        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save card');
+      if (response.ok) {
+        router.push('/admin/cards');
+      } else {
+        console.error('Ошибка при сохранении карточки');
       }
-
-      router.push('/admin/cards');
     } catch (error) {
-      console.error('Error saving card:', error);
-      alert('Ошибка при сохранении карточки: ' + error.message);
+      console.error('Ошибка:', error);
     }
   };
 
@@ -129,8 +129,8 @@ export default function EditCard() {
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
-              <option value="supplier">Поставщик трафика</option>
               <option value="advertiser">Рекламодатель</option>
+              <option value="supplier">Поставщик трафика</option>
             </select>
           </div>
 
@@ -158,19 +158,7 @@ export default function EditCard() {
             />
           </div>
 
-          {formData.type === 'supplier' ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Опыт (лет)</label>
-              <input
-                type="number"
-                name="experience"
-                value={formData.experience}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-          ) : (
+          {formData.type === 'advertiser' ? (
             <div>
               <label className="block text-sm font-medium text-gray-700">Год основания</label>
               <input
@@ -182,71 +170,72 @@ export default function EditCard() {
                 required
               />
             </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Опыт работы (лет)</label>
+              <input
+                type="number"
+                name="experience"
+                value={formData.experience}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                required
+              />
+            </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {formData.type === 'supplier' ? 'Минимальный бюджет ($)' : 'Бюджет на месяц ($)'}
-            </label>
+            <label className="block text-sm font-medium text-gray-700">Бюджет</label>
             <input
-              type="number"
+              type="text"
               name="budget"
               value={formData.budget}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               required
-              min="0"
             />
           </div>
 
-          {formData.type === 'supplier' ? (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Источник трафика</label>
-              <input
-                type="text"
-                name="trafficSource"
-                value={formData.trafficSource || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-                placeholder="Например: Facebook Ads"
-              />
-            </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Источники трафика</label>
-              <textarea
-                value={(formData.sources || []).join('\n')}
-                onChange={(e) => handleArrayChange(e, 'sources')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                required
-                placeholder="Введите каждый источник с новой строки, например:&#10;Facebook Ads&#10;Google Ads&#10;TikTok Ads"
-                rows={4}
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Источники трафика</label>
+            <select
+              name="trafficSources"
+              multiple
+              value={formData.trafficSources}
+              onChange={handleTrafficSourceChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              size="5"
+            >
+              {trafficSources.map(source => (
+                <option key={source.id} value={source.name}>
+                  {source.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-sm text-gray-500">
+              Удерживайте Ctrl (или Command на Mac) для выбора нескольких источников
+            </p>
+          </div>
 
-          {formData.type === 'advertiser' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Цели</label>
-              <textarea
-                value={(formData.goals || []).join('\n')}
-                onChange={(e) => handleArrayChange(e, 'goals')}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Введите каждую цель с новой строки, например:&#10;Увеличение продаж&#10;Привлечение клиентов"
-                rows={4}
-              />
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Цели</label>
+            <textarea
+              name="goals"
+              value={formData.goals.join('\n')}
+              onChange={handleArrayChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              rows="3"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Преимущества</label>
             <textarea
-              value={(formData.advantages || []).join('\n')}
-              onChange={(e) => handleArrayChange(e, 'advantages')}
+              name="advantages"
+              value={formData.advantages.join('\n')}
+              onChange={handleArrayChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Введите каждое преимущество с новой строки, например:&#10;Быстрая поддержка&#10;Гибкие условия"
-              rows={4}
+              rows="3"
             />
           </div>
 
@@ -269,4 +258,45 @@ export default function EditCard() {
       </div>
     </AdminLayout>
   );
+}
+
+export async function getServerSideProps(context) {
+  const prisma = new PrismaClient();
+  const { id } = context.params;
+
+  try {
+    const card = id ? await prisma.card.findUnique({
+      where: { id },
+      include: {
+        trafficSources: true
+      }
+    }) : null;
+
+    const trafficSources = await prisma.trafficSource.findMany({
+      orderBy: {
+        name: 'asc'
+      }
+    });
+
+    return {
+      props: {
+        card: card ? {
+          ...card,
+          createdAt: card.createdAt.toISOString(),
+          updatedAt: card.updatedAt.toISOString()
+        } : null,
+        trafficSources
+      }
+    };
+  } catch (error) {
+    console.error('Ошибка при загрузке данных:', error);
+    return {
+      props: {
+        card: null,
+        trafficSources: []
+      }
+    };
+  } finally {
+    await prisma.$disconnect();
+  }
 } 
