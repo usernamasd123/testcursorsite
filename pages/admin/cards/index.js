@@ -7,29 +7,51 @@ export default function CardsPage() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [seeding, setSeeding] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchCards = async () => {
+    fetchCards();
+  }, []);
+
+  const fetchCards = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/cards');
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setCards(data);
+      setError(null);
+    } catch (err) {
+      console.error('Ошибка при загрузке карточек:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSeed = async () => {
+    if (confirm('Вы уверены, что хотите заполнить базу данных тестовыми карточками? Все существующие карточки будут удалены.')) {
       try {
-        setLoading(true);
-        const response = await fetch('/api/admin/cards');
+        setSeeding(true);
+        const response = await fetch('/api/admin/seed', {
+          method: 'POST'
+        });
         if (!response.ok) {
           throw new Error(`Ошибка HTTP: ${response.status}`);
         }
-        const data = await response.json();
-        setCards(data);
-        setError(null);
+        await fetchCards(); // Обновляем список карточек
+        alert('Тестовые данные успешно созданы');
       } catch (err) {
-        console.error('Ошибка при загрузке карточек:', err);
-        setError(err.message);
+        console.error('Ошибка при создании тестовых данных:', err);
+        alert('Ошибка при создании тестовых данных');
       } finally {
-        setLoading(false);
+        setSeeding(false);
       }
-    };
-
-    fetchCards();
-  }, []);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (confirm('Вы уверены, что хотите удалить эту карточку?')) {
@@ -72,9 +94,18 @@ export default function CardsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Карточки</h1>
-        <Link href="/admin/cards/new" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-          Создать карточку
-        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={handleSeed}
+            disabled={seeding}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-green-300"
+          >
+            {seeding ? 'Создание...' : 'Заполнить тестовыми данными'}
+          </button>
+          <Link href="/admin/cards/new" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            Создать карточку
+          </Link>
+        </div>
       </div>
 
       {cards.length === 0 ? (
