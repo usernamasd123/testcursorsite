@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "next build && next export",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
@@ -13,11 +14,11 @@
     "@prisma/client": "^5.9.1",
     "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.5.1",
-    "next": "14.1.0",
+    "next": "^15.3.1",
     "next-auth": "^4.24.11",
     "openai": "^4.91.1",
-    "react": "^18",
-    "react-dom": "^18"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",
