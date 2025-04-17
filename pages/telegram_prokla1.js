@@ -1,39 +1,54 @@
-import { useEffect } from 'react';
 import Head from 'next/head';
+import { useState } from 'react';
 
-export default function TelegramRedirect() {
-  useEffect(() => {
-    setTimeout(() => {
-      window.location.href = 'https://t.me/prokla1';
-    }, 1500);
-  }, []);
+export default function TelegramRedirect1() {
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [showWin, setShowWin] = useState(false);
+
+  const handleSpin = () => {
+    if (!isSpinning) {
+      setIsSpinning(true);
+      setTimeout(() => {
+        setShowWin(true);
+        setTimeout(() => {
+          window.location.href = 'https://t.me/prokla1';
+        }, 1000);
+      }, 3000);
+    }
+  };
 
   return (
     <>
       <Head>
-        <title>Переход в Telegram</title>
+        <title>🎰 Exclusive Bonus Offer</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <div className="container">
-        <svg className="logo" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L10 13.17l7.59-7.59L19 7l-8 8z"/>
-        </svg>
-        <h1>Переходим в Telegram...</h1>
-        <p>Если переход не произошел автоматически,</p>
-        <a href="https://t.me/prokla1" className="button">нажмите здесь</a>
+        <div className="image-placeholder">
+          <div className="image-text">Place for Your Image</div>
+        </div>
+        <h1>🎰 EXCLUSIVE VIP ACCESS 🎰</h1>
+        <div className="slot-machine">
+          <button 
+            className={`spin-button ${isSpinning ? 'spinning' : ''} ${showWin ? 'win' : ''}`}
+            onClick={handleSpin}
+            disabled={isSpinning}
+          >
+            <div className="slot-numbers">
+              {showWin ? '777' : isSpinning ? '---' : 'SPIN TO WIN'}
+            </div>
+          </button>
+        </div>
       </div>
 
       <style jsx global>{`
         body {
           margin: 0;
           padding: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-          background: linear-gradient(135deg, #0088cc, #00a2ff);
+          font-family: 'Arial', sans-serif;
+          background: linear-gradient(135deg, #1a1a2e, #16213e);
           min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
+          color: #fff;
         }
       `}</style>
 
@@ -42,46 +57,65 @@ export default function TelegramRedirect() {
           text-align: center;
           padding: 2rem;
           max-width: 600px;
+          margin: 0 auto;
         }
-        .logo {
-          width: 80px;
-          height: 80px;
+        .image-placeholder {
+          width: 100%;
+          height: 200px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
           margin-bottom: 2rem;
-          animation: bounce 1s infinite;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px dashed rgba(255, 255, 255, 0.3);
+        }
+        .image-text {
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 1.2rem;
         }
         h1 {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
-          font-weight: 700;
-        }
-        p {
-          font-size: 1.2rem;
-          opacity: 0.9;
+          font-size: 2rem;
           margin-bottom: 2rem;
+          color: #ffd700;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
-        .button {
-          display: inline-block;
-          background: white;
-          color: #0088cc;
-          padding: 1rem 2rem;
-          border-radius: 50px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 1.1rem;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .slot-machine {
+          perspective: 1000px;
         }
-        .button:hover {
+        .spin-button {
+          width: 200px;
+          height: 60px;
+          border: none;
+          border-radius: 10px;
+          background: linear-gradient(45deg, #ffd700, #ff9900);
+          color: #1a1a2e;
+          font-size: 1.5rem;
+          font-weight: bold;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          transition: transform 0.3s;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        .spin-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
-        @keyframes bounce {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
+        .spin-button:disabled {
+          cursor: default;
+        }
+        .spinning .slot-numbers {
+          animation: spin 0.2s linear infinite;
+        }
+        .win .slot-numbers {
+          animation: none;
+          color: #ffd700;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+          font-size: 2rem;
+        }
+        @keyframes spin {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100%); }
         }
       `}</style>
     </>
