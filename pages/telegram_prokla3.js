@@ -55,6 +55,11 @@ export default function TelegramRedirect3() {
           color: #fff;
           overflow-x: hidden;
         }
+        @media (max-width: 768px) {
+          body {
+            font-size: 14px;
+          }
+        }
       `}</style>
 
       <style jsx>{`
@@ -67,37 +72,33 @@ export default function TelegramRedirect3() {
           background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2000 2000' fill='%23fff'%3E%3Ccircle cx='1000' cy='1000' r='1'/%3E%3C/svg%3E") repeat;
           opacity: 0.3;
           animation: twinkle 10s infinite linear;
-        }
-        @keyframes twinkle {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.5); }
-          100% { transform: scale(1); }
+          pointer-events: none;
         }
         .container {
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 2rem;
+          padding: 1rem;
           position: relative;
           z-index: 1;
         }
         .content-wrapper {
           background: linear-gradient(145deg, rgba(41, 0, 102, 0.9), rgba(0, 11, 41, 0.9));
           border-radius: 30px;
-          padding: 2rem;
-          max-width: 500px;
-          width: 100%;
+          padding: clamp(1rem, 5vw, 2rem);
+          width: min(100%, 500px);
+          margin: 1rem;
           box-shadow: 0 0 50px rgba(138, 43, 226, 0.3);
           border: 1px solid rgba(138, 43, 226, 0.2);
           backdrop-filter: blur(10px);
         }
         .image-placeholder {
           width: 100%;
-          height: 200px;
+          height: clamp(150px, 30vw, 200px);
           background: rgba(138, 43, 226, 0.1);
           border-radius: 20px;
-          margin-bottom: 2rem;
+          margin-bottom: clamp(1rem, 3vw, 2rem);
           position: relative;
           overflow: hidden;
           display: flex;
@@ -110,79 +111,82 @@ export default function TelegramRedirect3() {
           height: 200%;
           background: radial-gradient(circle, rgba(138, 43, 226, 0.4) 0%, rgba(138, 43, 226, 0) 70%);
           animation: rotate 10s infinite linear;
-        }
-        @keyframes rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          pointer-events: none;
         }
         .image-text {
           color: rgba(255, 255, 255, 0.5);
-          font-size: 1.2rem;
+          font-size: clamp(1rem, 2.5vw, 1.2rem);
           z-index: 1;
         }
         .jackpot {
           text-align: center;
-          margin-bottom: 2rem;
+          margin-bottom: clamp(1rem, 3vw, 2rem);
         }
         .jackpot-value {
-          font-size: 3rem;
+          font-size: clamp(2rem, 6vw, 3rem);
           font-weight: bold;
           color: #ffd700;
           text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
         .jackpot-label {
-          font-size: 0.9rem;
+          font-size: clamp(0.8rem, 2vw, 0.9rem);
           color: rgba(255, 255, 255, 0.7);
         }
         h1 {
           text-align: center;
-          font-size: 2.5rem;
-          margin: 0 0 1rem;
+          font-size: clamp(1.8rem, 5vw, 2.5rem);
+          margin: 0 0 clamp(0.5rem, 2vw, 1rem);
           background: linear-gradient(45deg, #fff, #ffd700);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          line-height: 1.2;
         }
         .description {
           text-align: center;
           color: rgba(255, 255, 255, 0.8);
-          margin-bottom: 2rem;
+          margin-bottom: clamp(1rem, 3vw, 2rem);
+          font-size: clamp(0.9rem, 2.5vw, 1rem);
+          padding: 0 clamp(0.5rem, 2vw, 1rem);
         }
         .bonus-items {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          margin-bottom: 2rem;
+          gap: clamp(0.5rem, 2vw, 1rem);
+          margin-bottom: clamp(1rem, 3vw, 2rem);
         }
         .bonus-item {
           text-align: center;
-          padding: 1rem;
+          padding: clamp(0.5rem, 2vw, 1rem);
           background: rgba(138, 43, 226, 0.2);
           border-radius: 15px;
           border: 1px solid rgba(138, 43, 226, 0.3);
         }
         .bonus-value {
-          font-size: 1.5rem;
+          font-size: clamp(1.2rem, 3.5vw, 1.5rem);
           font-weight: bold;
           color: #ffd700;
         }
         .bonus-label {
-          font-size: 0.8rem;
+          font-size: clamp(0.7rem, 2vw, 0.8rem);
           color: rgba(255, 255, 255, 0.7);
+          margin-top: 0.3rem;
         }
         .join-button {
           display: block;
           width: 100%;
-          padding: 1.2rem;
+          padding: clamp(1rem, 3vw, 1.2rem);
           background: linear-gradient(45deg, #8a2be2, #4b0082);
           color: white;
           text-decoration: none;
           text-align: center;
           border-radius: 15px;
           font-weight: bold;
-          font-size: 1.2rem;
+          font-size: clamp(1rem, 3vw, 1.2rem);
           position: relative;
           overflow: hidden;
           transition: transform 0.3s;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
         }
         .join-button:hover {
           transform: translateY(-2px);
@@ -201,10 +205,52 @@ export default function TelegramRedirect3() {
           );
           transform: rotate(45deg);
           animation: shine 3s infinite;
+          pointer-events: none;
         }
         @keyframes shine {
           0% { transform: translateX(-100%) rotate(45deg); }
           100% { transform: translateX(100%) rotate(45deg); }
+        }
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes twinkle {
+          0% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.5); opacity: 0.4; }
+          100% { transform: scale(1); opacity: 0.3; }
+        }
+
+        @media (max-width: 480px) {
+          .bonus-items {
+            grid-template-columns: 1fr;
+            gap: 0.8rem;
+          }
+          .bonus-item {
+            padding: 0.8rem;
+          }
+          .content-wrapper {
+            margin: 0.5rem;
+            border-radius: 20px;
+          }
+          .image-placeholder {
+            height: 120px;
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .content-wrapper {
+            padding: 3rem;
+          }
+          .image-placeholder {
+            height: 250px;
+          }
+          .bonus-items {
+            gap: 2rem;
+          }
+          .join-button {
+            margin-top: 2rem;
+          }
         }
       `}</style>
     </>
